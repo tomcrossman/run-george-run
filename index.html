@@ -323,17 +323,16 @@ body {
     box-shadow: var(--pop); cursor: pointer;
 }
 .btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
-.bigscore { margin: 10px 0 0; }
+.bigscore { margin: 12px 0 0; }
+.sub { font-family: var(--font); font-size: 13px; font-weight: 900; letter-spacing: .04em;
+       opacity: .55; margin-top: 2px; }
+.bestline { font-family: var(--font-display); font-size: 25px; letter-spacing: .02em;
+            color: var(--gold); margin: 10px 0 2px; }
+.bestline .ico { width: 17px; height: 17px; vertical-align: -3px; margin-right: 3px; }
 .bigscore span:first-child { display: block; font-family: var(--font); font-size: 13px;
                              font-weight: 900; letter-spacing: .05em; opacity: .66; }
 .bigscore span:last-child { display: block; font-family: var(--font-display); font-size: 62px;
                             line-height: 1; letter-spacing: .02em; }
-.tally { display: flex; justify-content: center; gap: 14px; margin: 4px 0 4px; }
-/* the number is a span too, so only the first one gets the small caption treatment */
-.tally div { font-family: var(--font-display); font-size: 40px; line-height: 1.05; }
-.tally span { display: block; }
-.tally span:first-child { font-family: var(--font); font-size: 13px; font-weight: 900;
-                          letter-spacing: .05em; opacity: .66; white-space: nowrap; }
 .ico { fill: currentColor; width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; }
 .plate .ico { width: 18px; height: 18px; flex: none; margin: 1px 0 0; opacity: .7; }
 /* the combo, for as long as he keeps it going */
@@ -486,7 +485,6 @@ body {
     <div id="hud">
         <div class="plate"><svg class="ico"><use href="#i-star"/></svg><span><span class="cap">Score</span><span id="score">0</span></span><b id="mult" hidden>x2</b></div>
         <div class="plate mid" id="bestplate"><svg class="ico"><use href="#i-cup"/></svg><span><span class="cap">Best</span><span id="best-val">0</span></span></div>
-        <div class="plate" id="coins"><svg class="ico"><use href="#i-capy"/></svg><span><span class="cap">Capybaras</span><span id="coin-count">0</span></span></div>
         <button id="mute" aria-label="Sound on or off">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
                  stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -517,11 +515,8 @@ body {
             <h2 id="over-title">Ouch!</h2>
             <p id="over-line">A crate got in the way.</p>
             <div class="bigscore"><span><svg class="ico"><use href="#i-star"/></svg>Score</span><span id="over-score">0</span></div>
-            <div class="tally">
-                <div><span><svg class="ico"><use href="#i-flag"/></svg>Metres</span><span id="over-dist">0</span></div>
-                <div><span><svg class="ico"><use href="#i-capy"/></svg>Capybaras</span><span id="over-coins">0</span></div>
-                <div class="best"><span><svg class="ico"><use href="#i-cup"/></svg>Best</span><span id="over-best">0</span></div>
-            </div>
+            <div class="sub" id="over-sub"></div>
+            <div class="bestline"><svg class="ico"><use href="#i-cup"/></svg>Best <span id="over-best">0</span></div>
             <button class="btn" id="again">Again!</button>
         </div>
     </div>
@@ -530,7 +525,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v14';
+const APP_VERSION = 'v15';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1156,7 +1151,6 @@ function frame(now) {
             t.dead = true; t.el.classList.add('pop');
             world.coins++; play('coin');
             award(CAPY_PTS);
-            document.getElementById('coin-count').textContent = fmt(world.coins);
         } else if (t.kind === 'ride') {
             t.dead = true; t.el.remove();
             mount();
@@ -1227,8 +1221,8 @@ function crash(kind) {
     document.getElementById('over-title').textContent = score >= best && score > 0 ? 'Best yet!' : 'Ouch!';
     document.getElementById('over-line').textContent = KINDS[kind].line;
     document.getElementById('over-score').textContent = fmt(score);
-    document.getElementById('over-dist').textContent = fmt(Math.floor(world.dist));
-    document.getElementById('over-coins').textContent = fmt(world.coins);
+    document.getElementById('over-sub').textContent =
+        `${fmt(world.dist)} m · ${fmt(world.coins)} capybara${world.coins === 1 ? '' : 's'}`;
     document.getElementById('over-best').textContent = fmt(best);
     document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
@@ -1255,7 +1249,7 @@ function begin() {
     multEl.hidden = true;
     document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
-    document.getElementById('coin-count').textContent = '0';
+
     startMusic();
 }
 document.getElementById('go').addEventListener('click', e => { e.stopPropagation(); begin(); });
