@@ -376,8 +376,11 @@ body {
     font-size: 34px; letter-spacing: .02em;
 }
 .card p { margin: 6px 0 0; font-size: 12.5px; font-weight: 700; line-height: 1.5; opacity: .75; }
+/* the tagline sits in the same gap above and below, between the faces it
+   describes and the controls for them */
+#tagline { margin: 12px 0; }
 .card .keys {
-    margin-top: 12px; display: grid; grid-template-columns: max-content 1fr;
+    margin-top: 0; display: grid; grid-template-columns: max-content 1fr;
     gap: 7px 9px; align-items: center; text-align: left;
 }
 .row { display: contents; }
@@ -441,7 +444,8 @@ body {
 @media (max-height: 720px) {
     .casts.big .face { width: 50px; height: 50px; }
     .casts.big .cast { padding: 6px 5px 5px; font-size: 14px; }
-    .card .keys { margin-top: 8px; gap: 5px 8px; }
+    #tagline { margin: 9px 0; }
+    .card .keys { gap: 5px 8px; }
     .cast { font-size: 13px; padding: 5px 4px 4px; }
     .switch { margin-top: 10px; }
     .casts.mini .face { width: 36px; height: 36px; }
@@ -690,7 +694,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v57';
+const APP_VERSION = 'v58';
 document.getElementById('version').textContent = `Run Boys, Run ${APP_VERSION}`;
 
 /* ============================================================
