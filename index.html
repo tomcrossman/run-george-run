@@ -632,13 +632,17 @@ body {
                     <g class="off"><path d="M 17 9.5 L 22 14.5 M 22 9.5 L 17 14.5"/></g>
                 </svg>
             </button>
-            <button id="cog" aria-label="Settings">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
-                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3.5"/>
-                    <path d="M 12 2.4 V 5.2 M 12 18.8 V 21.6 M 2.4 12 H 5.2 M 18.8 12 H 21.6
-                             M 5.2 5.2 L 7.2 7.2 M 16.8 16.8 L 18.8 18.8
-                             M 18.8 5.2 L 16.8 7.2 M 7.2 16.8 L 5.2 18.8"/>
+            <button id="cog" aria-label="Switch characters">
+                <!-- two of them, one stepping in front of the other: a cog read as
+                     settings, and there is nothing else in here to set -->
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#241F2E">
+                    <circle cx="8.2" cy="7.6" r="3.5"/>
+                    <path d="M 1.4 19.4 C 1.4 14.8, 4.4 12.2, 8.2 12.2
+                             C 12 12.2, 15 14.8, 15 19.4 Z"/>
+                    <circle cx="16" cy="9.8" r="4.2" stroke="#fffdf8" stroke-width="1.8"/>
+                    <path d="M 8.4 22.4 C 8.4 17.4, 11.8 14.6, 16 14.6
+                             C 20.2 14.6, 23.6 17.4, 23.6 22.4 Z"
+                          stroke="#fffdf8" stroke-width="1.8" stroke-linejoin="round"/>
                 </svg>
             </button>
         </div>
@@ -683,7 +687,7 @@ body {
     <div class="card" id="set-card" hidden>
         <div class="inner">
             <h2>Who&rsquo;s running?</h2>
-            <p>Swap the cast, the collectibles and the moves.</p>
+            <p id="set-note">Swap the cast, the collectibles and the moves.</p>
             <div class="casts" id="pick-set"></div>
             <button class="btn" id="close-set">Done</button>
         </div>
@@ -693,7 +697,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v52';
+const APP_VERSION = 'v55';
 document.getElementById('version').textContent = `Run Boys, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -990,7 +994,7 @@ const world = {
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     slideLeft: 0, dustT: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
-    spawnIn: 420, things: [], t: 0, paused: false
+    spawnIn: 420, things: [], t: 0, paused: false, swapped: false
 };
 
 const fmt = n => Math.round(n).toLocaleString('en-GB');
@@ -1472,18 +1476,18 @@ const HERO_GEORGE = `
 const HERO_TWINS = `
 <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
                 <g class="hifive">
-                    <path d="M 57.64 57.33 C 55.14 45.33, 53.64 27.33, 48.6 10"
+                    <path d="M 57.64 57.33 C 55.14 45.33, 53.64 27.33, 48.6 14"
                           fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 57.64 57.33 C 55.14 45.33, 53.64 27.33, 48.6 10"
+                    <path d="M 57.64 57.33 C 55.14 45.33, 53.64 27.33, 48.6 14"
                           fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <path d="M 34.1 61.02 C 35.6 49.02, 39.1 31.020000000000003, 37.4 10"
+                    <path d="M 34.1 61.02 C 35.6 49.02, 39.1 31.020000000000003, 37.4 14"
                           fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 34.1 61.02 C 35.6 49.02, 39.1 31.020000000000003, 37.4 10"
+                    <path d="M 34.1 61.02 C 35.6 49.02, 39.1 31.020000000000003, 37.4 14"
                           fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <circle cx="49" cy="7.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
-                    <circle cx="37" cy="7.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
-                    <path d="M 43 9 L 43 1.5 M 37.8 1 L 34.8 -3 M 48.2 1 L 51.2 -3
-                             M 33.3 5 L 28.3 3.5 M 52.7 5 L 57.7 3.5"
+                    <circle cx="49" cy="11.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <circle cx="37" cy="11.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <path d="M 43 13 L 43 5.5 M 37.8 5 L 34.8 1 M 48.2 5 L 51.2 1
+                             M 33.3 9 L 28.3 7.5 M 52.7 9 L 57.7 7.5"
                           fill="none" stroke="#F4B32C" stroke-width="2.8" stroke-linecap="round"/>
                 </g>
                 <g transform="translate(5.46 18.061) scale(0.895)">
@@ -1544,9 +1548,6 @@ const HERO_TWINS = `
                               fill="none" stroke="#388B5A" stroke-width="2" opacity=".8"/>
                     <path d="M 30 43 L 29.5 49 M 33 43 L 33.5 49"
                           fill="none" stroke="#FFFDF8" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M 29.5 33 L 30 43" stroke="#241F2E" stroke-width="11.5"/>
-                    <path d="M 29.5 33 L 30 43" stroke="#FFDCC0" stroke-width="8"/>
-                    <g transform="translate(0 -4)">
                     <path d="M 22.5 18 C 17 23, 16.5 32, 18.8 37.5
                              C 22.7 39, 26.4 36.6, 25.8 32
                              C 24 27, 22.5 22.5, 23 19 Z"
@@ -1580,7 +1581,6 @@ const HERO_TWINS = `
                     <ellipse cx="30" cy="32.5" rx="3" ry="1.8" fill="#F08C7A" opacity=".45"
                              stroke="none"/>
                     
-                    </g>
                 </g>
 
                 <g class="arm-up-a" style="transform-origin:32px 48px">
@@ -1639,9 +1639,6 @@ const HERO_TWINS = `
                     <path d="M 49 45 L 50 68" stroke="#CE6A1E" stroke-width="3.6"
                           opacity=".55"/>
                     
-                    <path d="M 55.5 33 L 56 43" stroke="#241F2E" stroke-width="11.5"/>
-                    <path d="M 55.5 33 L 56 43" stroke="#FFDCC0" stroke-width="8"/>
-                    <g transform="translate(0 -4)">
                     <path d="M 48.5 18 C 43 23, 42.5 32, 44.8 37.5
                              C 48.7 39, 52.4 36.6, 51.8 32
                              C 50 27, 48.5 22.5, 49 19 Z"
@@ -1675,7 +1672,6 @@ const HERO_TWINS = `
                                 stroke="#241F2E" stroke-width="2"/>
                         <path d="M 69.5 25 q 1.8 .4 2.4 1.6" fill="none" stroke="#241F2E"
                               stroke-width="1.8"/>
-                    </g>
                     </g>
                 </g>
 
@@ -1884,15 +1880,14 @@ const CASTS = {
     },
 };
 
-const castKey = 'rgr-cast';
 const heroSvg = hero.querySelector('svg');
 const barIcon = rideBar.querySelector('.ico');
 const rowRide = document.getElementById('row-ride');
 const rowBuddy = document.getElementById('row-buddy');
 const rowBoost = document.getElementById('row-boost');
 const setCard = document.getElementById('set-card');
+// the game opens as George every time: the pick lasts for this visit, not for good
 let castId = 'george', CAST = CASTS.george;
-try { const c = localStorage.getItem(castKey); if (CASTS[c]) castId = c; } catch (e) { /* private mode */ }
 
 const helpRow = (icon, key, what) =>
     `<span class="key"><svg class="ico"><use href="#${icon}"/></svg>${key}</span>` +
@@ -1901,7 +1896,6 @@ const helpRow = (icon, key, what) =>
 function applyCast(id) {
     if (!CASTS[id]) id = 'george';
     castId = id; CAST = CASTS[id];
-    try { localStorage.setItem(castKey, id); } catch (e) { /* private mode */ }
     gameEl.classList.toggle('twins', id === 'twins');
     heroSvg.innerHTML = CAST.hero;
     heroSvg.setAttribute('aria-label', CAST.alt);
@@ -1928,14 +1922,27 @@ document.getElementById('pick-set').innerHTML = pickHTML;
 document.getElementById('pick-over').innerHTML = pickHTML;
 document.querySelectorAll('.cast').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    if (b.dataset.cast !== castId) { applyCast(b.dataset.cast); play('coin'); }
+    if (b.dataset.cast !== castId) { applyCast(b.dataset.cast); world.swapped = true; play('coin'); }
 }));
 
 // the cog holds the run while you decide
 const cogBtn = document.getElementById('cog');
-cogBtn.addEventListener('click', e => { e.stopPropagation(); setCard.hidden = false; world.paused = true; });
+cogBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    setCard.hidden = false;
+    world.paused = true;
+    world.swapped = false;
+    document.getElementById('set-note').textContent = world.running
+        ? 'Swap the cast, the collectibles and the moves. Swapping starts the run again.'
+        : 'Swap the cast, the collectibles and the moves.';
+});
 document.getElementById('close-set').addEventListener('click', e => {
-    e.stopPropagation(); setCard.hidden = true; world.paused = false;
+    e.stopPropagation();
+    setCard.hidden = true;
+    world.paused = false;
+    // the score on the plate was earned by whoever was running for it, so a
+    // swap part-way through starts the run over rather than handing it on
+    if (world.swapped && world.running) begin();
 });
 
 applyCast(castId);
@@ -2419,7 +2426,7 @@ function begin() {
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     slideLeft: 0, dustT: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
-        spawnIn: 520, things: [], t: 0, paused: false
+        spawnIn: 520, things: [], t: 0, paused: false, swapped: false
     });
     hero.className = 'run';
     hero.classList.remove('hurt', 'lost');
