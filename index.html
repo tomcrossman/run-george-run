@@ -676,7 +676,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v39';
+const APP_VERSION = 'v40';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1073,15 +1073,22 @@ function spawn() {
 // screen is never the first warning you get
 const WARN_TIME = 520;
 let warnTimers = [];
+// a hazard gets a red arrow; the two friendly ones announce themselves in person
+const WARN_ART = {
+    ride:  () => [CAPY.replace('width="36" height="27"', 'width="46" height="35"'), 35],
+    fudge: () => [FUDGE.slice(0, FUDGE.indexOf('</svg>') + 6)
+                       .replace('width="48" height="52"', 'width="32" height="35"'), 35],
+};
 function warn(kind, ahead = 0) {
     const k = KIND(kind);
-    const good = kind === 'ride' || kind === 'fudge';
+    const [art, tall] = WARN_ART[kind] ? WARN_ART[kind]()
+        : [`<svg width="26" height="26" viewBox="0 0 26 26">
+             <path d="M 22 4 L 22 22 L 5 13 Z" fill="#ef4444"
+                   stroke="#241F2E" stroke-width="3" stroke-linejoin="round"/></svg>`, 26];
     const d = document.createElement('div');
     d.className = 'warn';
-    d.style.bottom = `calc(24% + ${k.lift + k.h / 2 - 13}px)`;
-    d.innerHTML = `<svg width="26" height="26" viewBox="0 0 26 26">
-        <path d="M 22 4 L 22 22 L 5 13 Z" fill="${good ? '#f4b32c' : '#ef4444'}"
-              stroke="#241F2E" stroke-width="3" stroke-linejoin="round"/></svg>`;
+    d.style.bottom = `calc(24% + ${k.lift + k.h / 2 - tall / 2}px)`;
+    d.innerHTML = art;
     gameEl.appendChild(d);
     const t = setTimeout(() => {
         d.remove();
