@@ -323,7 +323,12 @@ body {
     box-shadow: var(--pop); cursor: pointer;
 }
 .btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
-.tally { display: flex; justify-content: center; gap: 14px; margin: 12px 0 4px; }
+.bigscore { margin: 10px 0 0; }
+.bigscore span:first-child { display: block; font-family: var(--font); font-size: 13px;
+                             font-weight: 900; letter-spacing: .05em; opacity: .66; }
+.bigscore span:last-child { display: block; font-family: var(--font-display); font-size: 62px;
+                            line-height: 1; letter-spacing: .02em; }
+.tally { display: flex; justify-content: center; gap: 14px; margin: 4px 0 4px; }
 /* the number is a span too, so only the first one gets the small caption treatment */
 .tally div { font-family: var(--font-display); font-size: 40px; line-height: 1.05; }
 .tally span { display: block; }
@@ -331,6 +336,21 @@ body {
                           letter-spacing: .05em; opacity: .66; white-space: nowrap; }
 .ico { fill: currentColor; width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; }
 .plate .ico { width: 18px; height: 18px; flex: none; margin: 1px 0 0; opacity: .7; }
+/* the combo, for as long as he keeps it going */
+#mult {
+    font-family: var(--font-display); font-size: .82em; color: var(--ink);
+    background: var(--gold); border: 2.5px solid var(--ink); border-radius: 9px;
+    padding: 1px 5px 0; margin-left: 5px;
+    animation: multPulse .45s ease-in-out infinite alternate;
+}
+@keyframes multPulse { from { transform: scale(1); } to { transform: scale(1.12); } }
+/* what a move or a capybara just paid, floating off him */
+.gain {
+    position: absolute; z-index: 7; pointer-events: none; white-space: nowrap;
+    font-family: var(--font-display); font-size: 23px; letter-spacing: .02em;
+    text-shadow: 0 2px 0 var(--panel), 2px 0 0 var(--panel),
+                 -2px 0 0 var(--panel), 0 -2px 0 var(--panel);
+}
 .plate.mid .ico { width: 15px; height: 15px; }
 /* on a phone the icons carry the meaning on their own, and the words come off */
 @media (max-width: 430px) {
@@ -357,6 +377,14 @@ body {
         <circle cx="4.3" cy="4.4" r="1.9"/><circle cx="9.1" cy="4.1" r="1.7"/>
         <path d="M 1.6 9.4 C 1.6 6.6, 4 5, 7 5 C 10.4 5, 12.6 6.6, 12.6 9
                  C 12.6 11, 10.6 12.2, 7.6 12.2 L 2.6 12.2 C 2 12.2, 1.6 11, 1.6 9.4 Z"/>
+    </symbol>
+    <symbol id="i-cup" viewBox="0 0 14 14">
+        <path d="M 4 1.4 H 10 V 5.2 C 10 7.3, 8.7 8.6, 7 8.6 C 5.3 8.6, 4 7.3, 4 5.2 Z"/>
+        <path d="M 6 8.4 H 8 V 10.4 H 6 Z"/><path d="M 3.4 10.4 H 10.6 V 12.6 H 3.4 Z"/>
+        <path d="M 10.2 2.6 H 12.2 V 4.2 C 12.2 5.5, 11.2 6.2, 10.2 6.2" fill="none"
+              stroke="currentColor" stroke-width="1.3"/>
+        <path d="M 3.8 2.6 H 1.8 V 4.2 C 1.8 5.5, 2.8 6.2, 3.8 6.2" fill="none"
+              stroke="currentColor" stroke-width="1.3"/>
     </symbol>
     <symbol id="i-star" viewBox="0 0 14 14">
         <path d="M 7 1.2 L 8.8 5.2 L 13 5.7 L 9.8 8.6 L 10.7 12.8 L 7 10.6 L 3.3 12.8
@@ -456,8 +484,8 @@ body {
     <div id="flash"></div>
 
     <div id="hud">
-        <div class="plate"><svg class="ico"><use href="#i-flag"/></svg><span><span class="cap">Metres</span><span id="dist">0</span></span></div>
-        <div class="plate mid" id="bestplate"><svg class="ico"><use href="#i-star"/></svg><span><span class="cap">Best</span><span id="best-val">0</span></span></div>
+        <div class="plate"><svg class="ico"><use href="#i-star"/></svg><span><span class="cap">Score</span><span id="score">0</span></span><b id="mult" hidden>x2</b></div>
+        <div class="plate mid" id="bestplate"><svg class="ico"><use href="#i-cup"/></svg><span><span class="cap">Best</span><span id="best-val">0</span></span></div>
         <div class="plate" id="coins"><svg class="ico"><use href="#i-capy"/></svg><span><span class="cap">Capybaras</span><span id="coin-count">0</span></span></div>
         <button id="mute" aria-label="Sound on or off">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
@@ -477,7 +505,7 @@ body {
                 <div class="row"><span class="key">Tap</span> jump — hold for a bigger one</div>
                 <div class="row"><span class="key">Tap again</span> blade boost, mid-air</div>
                 <div class="row"><span class="key">Swipe down</span> slide under it</div>
-                <div class="row"><span class="key">Swipe across</span> showtime — sing or spin</div>
+                <div class="row"><span class="key">Swipe across</span> showtime — points, and a combo</div>
                 <div class="row"><span class="key">RIDE!</span> run into the big capybara</div>
             </div>
             <button class="btn" id="go">Run!</button>
@@ -488,10 +516,11 @@ body {
         <div class="inner">
             <h2 id="over-title">Ouch!</h2>
             <p id="over-line">A crate got in the way.</p>
+            <div class="bigscore"><span><svg class="ico"><use href="#i-star"/></svg>Score</span><span id="over-score">0</span></div>
             <div class="tally">
                 <div><span><svg class="ico"><use href="#i-flag"/></svg>Metres</span><span id="over-dist">0</span></div>
                 <div><span><svg class="ico"><use href="#i-capy"/></svg>Capybaras</span><span id="over-coins">0</span></div>
-                <div class="best"><span><svg class="ico"><use href="#i-star"/></svg>Best</span><span id="over-best">0</span></div>
+                <div class="best"><span><svg class="ico"><use href="#i-cup"/></svg>Best</span><span id="over-best">0</span></div>
             </div>
             <button class="btn" id="again">Again!</button>
         </div>
@@ -501,7 +530,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v13';
+const APP_VERSION = 'v14';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -721,6 +750,9 @@ const RIDE_LIFT = 14;            // enough to sit his hips on its back
 const RIDE_FWD = -6;             // and sat back off its shoulders
 const RIDE_SPEED = 1.3;          // and how much faster the world goes by
 const RIDE_FIRST = 320, RIDE_EVERY = 620;   // metres to the first one, and between them
+const PER_METRE = 1;             // the base earner, so a long run still counts
+const CAPY_PTS = 25, MOVE_PTS = 50, SMASH_PTS = 75;
+const COMBO_MAX = 5, COMBO_HOLD = 4;        // how high it stacks, and how long it lasts
 const MOVE_DUR = .8;             // how long a turn on stage lasts
 const MOVE_PULL = 320;           // and how far away the capybaras can hear it
 const HOLD_MAX = .22;            // for this long at most
@@ -732,6 +764,7 @@ const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
+    score: 0, mult: 1, multT: 0,
     spawnIn: 420, things: [], t: 0
 };
 
@@ -907,7 +940,39 @@ function perform(kind) {
     world.move = kind; world.moveT = MOVE_DUR;
     play(kind);
     notes(kind === 'sing' ? 4 : 3);
+    combo();
+    award(MOVE_PTS, true);
 }
+const multEl = document.getElementById('mult');
+const scoreEl = document.getElementById('score');
+
+function award(points, why) {
+    const paid = Math.round(points * world.mult);
+    world.score += paid;
+    gain(`+${fmt(paid)}${world.mult > 1 ? ` x${world.mult}` : ''}`, why);
+}
+// a move keeps the combo alive and pushes it one higher
+function combo() {
+    world.mult = Math.min(COMBO_MAX, world.mult + 1);
+    world.multT = COMBO_HOLD;
+    multEl.textContent = `x${world.mult}`;
+    multEl.hidden = false;
+}
+function gain(text, gold) {
+    const r = hero.getBoundingClientRect();
+    const d = document.createElement('div');
+    d.className = 'gain';
+    d.textContent = text;
+    d.style.color = gold ? 'var(--gold)' : 'var(--ink)';
+    d.style.left = `${r.left + r.width * .5}px`;
+    d.style.top = `${r.top + 12}px`;
+    gameEl.appendChild(d);
+    d.animate([{ transform: 'translate(-50%, 0)', opacity: 1 },
+               { transform: 'translate(-50%, -58px)', opacity: 0 }],
+              { duration: 780, easing: 'ease-out' });
+    setTimeout(() => d.remove(), 800);
+}
+
 function notes(n) {
     const r = hero.getBoundingClientRect();
     for (let i = 0; i < n; i++) {
@@ -1012,7 +1077,12 @@ function frame(now) {
 
     world.t += dt;
     world.speed = Math.min(SPEED_MAX, world.speed + SPEED_RAMP * dt);
-    world.dist += world.speed * dt / 12;
+    const metres = world.speed * dt / 12;
+    world.dist += metres;
+    world.score += metres * PER_METRE * world.mult * (world.riding > 0 ? 2 : 1);
+    if (world.multT > 0 && (world.multT -= dt) <= 0) {
+        world.mult = 1; world.multT = 0; multEl.hidden = true;
+    }
 
     // gravity, with a shove while the jump is held
     if (world.holding && world.held < HOLD_MAX && world.vy > 0) {
@@ -1085,6 +1155,7 @@ function frame(now) {
         if (t.kind === 'capy') {
             t.dead = true; t.el.classList.add('pop');
             world.coins++; play('coin');
+            award(CAPY_PTS);
             document.getElementById('coin-count').textContent = fmt(world.coins);
         } else if (t.kind === 'ride') {
             t.dead = true; t.el.remove();
@@ -1093,6 +1164,7 @@ function frame(now) {
             // nothing stands in the way of a capybara at full tilt
             t.dead = true; t.el.classList.add('pop');
             play('smash');
+            award(SMASH_PTS);
         } else {
             return crash(t.kind);
         }
@@ -1110,10 +1182,10 @@ function frame(now) {
         world.spawnIn = room + Math.random() * room * .7;
     }
 
-    const m = Math.floor(world.dist);
-    document.getElementById('dist').textContent = fmt(m);
-    document.getElementById('best-val').textContent = fmt(Math.max(best, m));
-    document.getElementById('bestplate').classList.toggle('beating', m > best && best > 0);
+    const sc = Math.floor(world.score);
+    scoreEl.textContent = fmt(sc);
+    document.getElementById('best-val').textContent = fmt(Math.max(best, sc));
+    document.getElementById('bestplate').classList.toggle('beating', sc > best && best > 0);
     document.getElementById('speedlines').style.opacity = world.speed > 560 ? .5 : 0;
 }
 requestAnimationFrame(frame);
@@ -1147,14 +1219,15 @@ function crash(kind) {
                 { duration: 900, easing: 'ease-out' });
     setTimeout(() => hat.remove(), 950);
 
-    const score = Math.floor(world.dist);
+    const score = Math.floor(world.score);
     if (score > best) {
         best = score;
         try { localStorage.setItem(bestKey, String(best)); } catch (e) { /* private mode */ }
     }
     document.getElementById('over-title').textContent = score >= best && score > 0 ? 'Best yet!' : 'Ouch!';
     document.getElementById('over-line').textContent = KINDS[kind].line;
-    document.getElementById('over-dist').textContent = fmt(score);
+    document.getElementById('over-score').textContent = fmt(score);
+    document.getElementById('over-dist').textContent = fmt(Math.floor(world.dist));
     document.getElementById('over-coins').textContent = fmt(world.coins);
     document.getElementById('over-best').textContent = fmt(best);
     document.getElementById('best-val').textContent = fmt(best);
@@ -1170,6 +1243,7 @@ function begin() {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
+    score: 0, mult: 1, multT: 0,
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
@@ -1177,7 +1251,8 @@ function begin() {
     mountEl.classList.remove('on');
     rideBar.classList.remove('on', 'low');
     hero.style.transform = 'translateY(0)';
-    document.getElementById('dist').textContent = '0';
+    scoreEl.textContent = '0';
+    multEl.hidden = true;
     document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
     document.getElementById('coin-count').textContent = '0';
