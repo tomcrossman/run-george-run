@@ -689,7 +689,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v41';
+const APP_VERSION = 'v42';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -960,7 +960,7 @@ const gameEl = document.getElementById('game');
 const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST, hopFrom: null, hopGid: -1,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     slideLeft: 0, dustT: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
     spawnIn: 420, things: [], t: 0
@@ -1072,15 +1072,16 @@ function spawn() {
     const roll = Math.random();
     // drones only once there is enough speed for a slide to feel worth it
     const kind = roll < .42 ? 'crate' : (roll < .72 || world.speed < 420 ? 'spikes' : 'drone');
-    warn(kind);
-
-    // a little herd of capybaras, sometimes arcing where a jump would take you
-    if (Math.random() < .55) {
-        const n = 3 + ((Math.random() * 3) | 0);
-        const arc = Math.random() < .5;
-        for (let i = 0; i < n; i++)
-            addThing('capy', 240 + i * 50, arc ? 60 + Math.sin(i / (n - 1) * Math.PI) * 120 : 70);
-    }
+    // the herd goes out with the obstacle, not half a second ahead of it, so it
+    // keeps its place in the gap behind rather than sitting on top of it
+    warn(kind, 0, () => {
+        if (Math.random() < .55) {
+            const n = 3 + ((Math.random() * 3) | 0);
+            const arc = Math.random() < .5;
+            for (let i = 0; i < n; i++)
+                addThing('capy', 240 + i * 50, arc ? 60 + Math.sin(i / (n - 1) * Math.PI) * 120 : 70);
+        }
+    });
 }
 // everything worth reacting to is announced at the right-hand edge first, so the
 // screen is never the first warning you get
@@ -1092,7 +1093,7 @@ const WARN_ART = {
     fudge: () => [FUDGE.slice(0, FUDGE.indexOf('</svg>') + 6)
                        .replace('width="48" height="52"', 'width="32" height="35"'), 35],
 };
-function warn(kind, ahead = 0) {
+function warn(kind, ahead = 0, then = null) {
     const k = KIND(kind);
     const [art, tall] = WARN_ART[kind] ? WARN_ART[kind]()
         : [`<svg width="26" height="26" viewBox="0 0 26 26">
@@ -1106,7 +1107,9 @@ function warn(kind, ahead = 0) {
     const t = setTimeout(() => {
         d.remove();
         warnTimers = warnTimers.filter(x => x !== t);
-        if (world.running) addThing(kind, ahead);
+        if (!world.running) return;
+        addThing(kind, ahead);
+        if (then) then();
     }, WARN_TIME);
     warnTimers.push(t);
 }
@@ -1184,37 +1187,21 @@ muteBtn.addEventListener('click', () => {
 applySound();
 
 /* ---- input --------------------------------------------------------- */
-let hopFx = null;
 function jump() {
     if (!world.running || world.jumps > 1) return;
     slideOff();                       // a jump gets him straight back up
-    // what this hop interrupted, in case the swipe it began asks for it back
-    world.hopFrom = { y: world.y, vy: world.vy, jumps: world.jumps };
-    world.hopGid = gid;
     world.jumpAt = world.t;
     world.held = 0; world.holding = true;
     endMove();
-    const first = world.jumps === 0;
-    world.vy = first ? JUMP_V : BOOST_V;
-    world.jumps = first ? 1 : 2;
-    // the noise and the dust wait a moment: a hop that gets handed back makes none
-    clearTimeout(hopFx);
-    hopFx = setTimeout(() => {
-        hopFx = null;
-        if (first) { play('jump'); dust(); }
-        else {
-            play('boost'); sparks();
-            hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
-        }
-    }, 70);
-}
-// undoable only if this very press made it: no timing guesswork, so a leisurely
-// swipe still hands its hop back, and a dive from an earlier jump is left alone
-const freshHop = () => world.hopFrom && world.hopGid === gid;
-function undoJump() {
-    clearTimeout(hopFx); hopFx = null;
-    Object.assign(world, world.hopFrom);
-    world.hopFrom = null; world.holding = false;
+    if (world.jumps === 0) {
+        world.vy = JUMP_V; world.jumps = 1;
+        play('jump'); dust();
+    } else {
+        // the blades give a second push the way a spring would
+        world.vy = BOOST_V; world.jumps = 2;
+        play('boost'); sparks();
+        hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
+    }
 }
 const mountEl = document.getElementById('mount');
 const rideBar = document.getElementById('ridebar');
@@ -1246,7 +1233,6 @@ function perform(kind) {
     // only one turn at a time
     if (!world.running || world.moveT > 0) return;
     slideOff();                       // showtime cuts a slide short too
-    if (freshHop()) undoJump();
     if (world.y > 0) return;      // a stage move wants a floor
     world.holding = false;
     world.move = kind; world.moveT = MOVE_DUR;
@@ -1330,9 +1316,8 @@ function endMove() {
 
 function slideOn() {
     if (!world.running || world.sliding || world.riding > 0) return;
-    // a swipe down hands back the hop its own press made; from a real jump it only
-    // brings him down — the slide is a second swipe, once he is on his blades again
-    if (freshHop()) undoJump();
+    // from a real jump a swipe down only brings him down: the slide is a second
+    // swipe, once he is back on his blades
     if (world.y > 0) {
         world.vy = Math.min(world.vy, -DIVE_V);
         world.holding = false;
@@ -1353,21 +1338,35 @@ function slideOff() {
     hero.classList.remove('slide');
 }
 
-let gx = null, gy = null, usingTouch = false, gid = 0;
+let gx = null, gy = null, usingTouch = false;
 // A press waits a moment before it becomes a jump, so a swipe never turns into
 // one: any real movement cancels it first. A quick tap does not wait for the
 // timer — it jumps the instant the finger comes off, so tapping still feels immediate.
-// The press jumps at once — no wait, so no lag — and a swipe that turns out to be
-// down or sideways hands the hop straight back. A swipe UP is a jump anyway, so it
-// needs nothing: it is already in the air by the time the finger has moved.
-function gestureStart(x, y) { gx = x; gy = y; gid++; jump(); }
+// The jump is held for a breath rather than fired on the press, so a swipe never
+// takes him off the ground and never has to snap him back. It commits the instant
+// anything proves it was not a swipe: the finger lifting, the finger holding still,
+// a flick upward — or seventy milliseconds passing, if none of those happen first.
+const JUMP_WAIT = 70, MOVED = 6, STILL = 3;
+let pending = null, gmoved = false;
+function armJump() { pending = setTimeout(fireJump, JUMP_WAIT); }
+function fireJump() { if (pending) { clearTimeout(pending); pending = null; jump(); } }
+function dropJump() { clearTimeout(pending); pending = null; }
+
+function gestureStart(x, y) { gx = x; gy = y; gmoved = false; armJump(); }
 function gestureMove(x, y) {
     if (gx === null) return;
-    const dx = x - gx, dy = y - gy;
-    if (dy > 26 && dy > Math.abs(dx)) { slideOn(); gx = gy = null; }
-    else if (Math.abs(dx) > 28 && Math.abs(dx) > dy) { perform(dx > 0 ? 'sing' : 'dance'); gx = gy = null; }
+    const dx = x - gx, dy = y - gy, far = Math.hypot(dx, dy);
+    if (far > MOVED) gmoved = true;
+    else if (far < STILL) fireJump();          // staying put: it is a hold, so go now
+    if (-dy > 26 && -dy > Math.abs(dx)) { fireJump(); gx = gy = null; }   // a flick up is a jump
+    else if (dy > 26 && dy > Math.abs(dx)) { dropJump(); slideOn(); gx = gy = null; }
+    else if (Math.abs(dx) > 28 && Math.abs(dx) > dy) { dropJump(); perform(dx > 0 ? 'sing' : 'dance'); gx = gy = null; }
 }
-function gestureEnd() { gx = gy = null; world.holding = false; }
+function gestureEnd() {
+    if (!gmoved) fireJump();
+    dropJump();
+    gx = gy = null; world.holding = false;
+}
 
 // touch first, and held onto with preventDefault, so the browser cannot take the
 // swipe away halfway through; the pointer events are for a mouse or a trackpad
@@ -1669,7 +1668,7 @@ function begin() {
     Object.assign(world, {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST, hopFrom: null, hopGid: -1,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     slideLeft: 0, dustT: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
         spawnIn: 520, things: [], t: 0
