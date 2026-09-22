@@ -397,6 +397,23 @@ body {
 }
 @keyframes ribbonIn { from { transform: translateX(-50%) rotate(-3deg) scale(0); }
                       to   { transform: translateX(-50%) rotate(-3deg) scale(1); } }
+/* George reacts to the run: a thumb up for a record, crossed out for the rest */
+.cheer {
+    position: absolute; left: -22px; top: -16px;
+    width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
+    background: linear-gradient(#cfe4f7, #eaf3fb);
+    border: 3.5px solid var(--ink); box-shadow: var(--pop);
+    animation: cheerIn .6s cubic-bezier(.2, 1.7, .4, 1) both;
+}
+.cheer svg { width: 100%; height: 100%; display: block; }
+@keyframes cheerIn { from { transform: scale(0) rotate(-20deg); } to { transform: scale(1) rotate(-6deg); } }
+.portrait .ok, .portrait .ko, .portrait .wob, .portrait .tongue, .portrait .hand { display: none; }
+.avatar .ok { display: block; }
+#over-card.record .cheer .ok, #over-card.record .cheer .hand { display: block; }
+#over-card:not(.record) .cheer .ko { display: block; }
+#over-card:not(.record):not(.cheeky) .cheer .wob { display: block; }
+#over-card.cheeky .cheer .tongue { display: block; }
+
 #over-card.record #ribbon { display: block; }
 #over-card.record .beat { display: block; }
 #over-card.record .inner { border-color: var(--gold); }
@@ -642,22 +659,8 @@ body {
 
     <div class="card" id="start-card">
         <div class="inner">
-            <div class="avatar">
-                <svg viewBox="31 2 54 45" stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
-                    <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
-                             C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
-                          fill="#F2C75C" stroke-width="2.2"/>
-                    <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
-                    <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
-                    <path d="M 61 34.5 q 3.4 2.4 6 -.6" fill="none" stroke-width="1.9"/>
-                    <path d="M 48 17 C 50 8, 62 6, 68 12 L 70 18 Z" fill="#B5703A" stroke-width="2.3"/>
-                    <path d="M 38 19.5 C 46 14.5, 74 13.5, 82 19 C 74 24, 46 24.5, 38 19.5 Z"
-                          fill="#B5703A" stroke-width="2.3"/>
-                    <path d="M 44 19 C 52 16, 74 15.5, 79 18.5" fill="none"
-                          stroke="#D69B5F" stroke-width="1.5"/>
-                </svg>
-            </div>
+            <div class="avatar portrait"></div>
+
             <h1>Run George,<br>Run</h1>
             <p>Two blades, one hat, no brakes.</p>
             <div class="keys">
@@ -675,6 +678,8 @@ body {
     <div class="card" id="over-card" hidden>
         <div class="inner">
             <div id="ribbon">NEW RECORD</div>
+            <div class="cheer portrait"></div>
+
             <h2 id="over-title">Ouch!</h2>
             <p id="over-line">A crate got in the way.</p>
             <div class="bigscore"><span><svg class="ico"><use href="#i-star"/></svg>Score</span><span id="over-score">0</span></div>
@@ -689,7 +694,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v42';
+const APP_VERSION = 'v45';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -967,6 +972,52 @@ const world = {
 };
 
 const fmt = n => Math.round(n).toLocaleString('en-GB');
+// George, facing the player — the same face as his Fingaz portrait, with the
+// moods this game needs
+const PORTRAIT = `<svg viewBox="0 0 64 64">
+    <path d="M 10 60 C 8 22, 19 2, 32 2 C 45 2, 56 22, 54 60 L 45 57 C 47 36, 46 22, 43 16
+             C 38 24, 26 24, 21 16 C 18 22, 17 36, 19 57 Z"
+          fill="#D2A03A" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M 26 39 L 26 51 Q 32 56 38 51 L 38 39 Z" fill="#F0B892" stroke="#241F2E" stroke-width="1.8"/>
+    <path d="M 2 64 C 4 55, 17 50, 32 50 C 47 50, 60 55, 62 64 Z" fill="#2FA8E0"
+          stroke="#241F2E" stroke-width="1.8"/>
+    <path d="M 17 28 C 17 15, 47 15, 47 28 C 47 39, 41 48, 32 48 C 23 48, 17 39, 17 28 Z"
+          fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8"/>
+    <path d="M 19.8 27.4 q 4.6 -3.2 9 -.6 M 44.2 27.4 q -4.6 -3.2 -9 -.6"
+          fill="none" stroke="#241F2E" stroke-width="1.5" stroke-linecap="round"/>
+<g class="ok"><ellipse cx="24.5" cy="34" rx="4.3" ry="5.2" fill="#fff" stroke="#241F2E" stroke-width="1.2"/><ellipse cx="24.5" cy="34.8" rx="2.9" ry="3.7" fill="#2FA8E0"/><ellipse cx="24.5" cy="35.2" rx="1.5" ry="2.1" fill="#241F2E"/><circle cx="26.1" cy="32.2" r="1.3" fill="#fff"/><ellipse cx="39.5" cy="34" rx="4.3" ry="5.2" fill="#fff" stroke="#241F2E" stroke-width="1.2"/><ellipse cx="39.5" cy="34.8" rx="2.9" ry="3.7" fill="#2FA8E0"/><ellipse cx="39.5" cy="35.2" rx="1.5" ry="2.1" fill="#241F2E"/><circle cx="41.1" cy="32.2" r="1.3" fill="#fff"/><path d="M 25 41 q 7 6.6 14 0" fill="none" stroke="#241F2E" stroke-width="1.9" stroke-linecap="round"/></g><g class="ko"><path d="M 20.8 30.3 l 7.4 7.4 M 28.2 30.3 l -7.4 7.4" fill="none" stroke="#241F2E" stroke-width="2.2" stroke-linecap="round"/><path d="M 35.8 30.3 l 7.4 7.4 M 43.2 30.3 l -7.4 7.4" fill="none" stroke="#241F2E" stroke-width="2.2" stroke-linecap="round"/></g><path class="wob" d="M 25.5 43 q 2.3 -3 4.6 0 q 2.3 3 4.6 0 q 2.3 -3 4.3 0" fill="none" stroke="#241F2E" stroke-width="1.9" stroke-linecap="round"/><g class="tongue"><path d="M 26 41 C 29 44, 35 44, 38 41" fill="none" stroke="#241F2E" stroke-width="1.9" stroke-linecap="round"/><path d="M 30.6 42.4 C 35.4 42.2, 37.6 44.4, 37 47.6 C 36.4 50.8, 32 51.2, 30.9 48.6 C 30.3 47, 30.2 44.2, 30.6 42.4 Z" fill="#E8697F" stroke="#241F2E" stroke-width="1.5" stroke-linejoin="round"/><path d="M 33.8 44.4 q .9 1.9 .2 3.6" fill="none" stroke="#C74E64" stroke-width="1" stroke-linecap="round"/></g>
+    <ellipse cx="21.8" cy="39.5" rx="3.2" ry="1.9" fill="#F4B32C" opacity=".35"/>
+    <ellipse cx="42.2" cy="39.5" rx="3.2" ry="1.9" fill="#F4B32C" opacity=".35"/>
+
+    <path d="M 13 34 C 12 11, 22 3, 32 3 C 42 3, 52 11, 51 34 C 49 22, 44 16.5, 36 17.5
+             C 34 22, 33.5 26, 33.5 30 C 30 20, 21 17.5, 14 25 Z"
+          fill="#F2C75C" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M 51 32 C 53 41, 52.5 50, 51 58 L 56 59 C 57.5 48, 56 36, 53.5 29 Z"
+          fill="#F2C75C" stroke="#241F2E" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M 13 32 C 11 41, 11.5 50, 13 58 L 8 59 C 6.5 48, 8 36, 10.5 29 Z"
+          fill="#F2C75C" stroke="#241F2E" stroke-width="1.6" stroke-linejoin="round"/>
+    <g stroke="#241F2E" stroke-linejoin="round">
+        <path d="M 18.5 20 C 18 7, 24 1.2, 32 1.2 C 40 1.2, 46 7, 45.5 20 Z" fill="#B5703A" stroke-width="1.7"/>
+        <path d="M 17.6 15.4 C 22 13.4, 42 13.4, 46.4 15.4 L 46.4 20 C 42 18, 22 18, 17.6 20 Z"
+              fill="#9A5C2B" stroke-width="1.5"/>
+        <path d="M 32 17.4 C 13 17.4, 3.5 20.4, 3.5 23.3 C 3.5 26.7, 14.5 29.4, 32 29.4
+                 C 49.5 29.4, 60.5 26.7, 60.5 23.3 C 60.5 20.4, 51 17.4, 32 17.4 Z"
+              fill="#B5703A" stroke-width="1.7"/>
+        <path d="M 6 24.5 C 12 27.5, 22 28.8, 32 28.8 C 42 28.8, 52 27.5, 58 24.5"
+              fill="none" stroke="#D69B5F" stroke-width="1.5" opacity=".9"/>
+    </g>
+<g class="hand">
+        <path d="M 41.5 64 L 41.5 56.5 C 41.5 52.5, 45 50, 49.5 50.2 C 55 50.4, 58.5 53.6, 58.5 58 L 58.5 64 Z"
+              fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M 46.5 51 H 57.5 M 47 56 H 58 M 47 60 H 58" fill="none" stroke="#E2A98C"
+              stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M 41.8 57 C 39.6 51.5, 40.4 44.6, 44.2 44 C 47.4 43.5, 48.6 47.6, 48 51.6
+                 C 47.7 53.8, 47 55.6, 46.2 56.8 Z"
+              fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M 43.4 47.6 q 1.6 .6 2.2 2" fill="none" stroke="#E2A98C" stroke-width="1.1"
+              stroke-linecap="round"/></g></svg>`;
+document.querySelectorAll('.portrait').forEach(el => { el.innerHTML = PORTRAIT; });
+
 const bestKey = 'rgr-best';
 let best = 0;
 try { best = parseInt(localStorage.getItem(bestKey) || '0', 10) || 0; } catch (e) { best = 0; }
@@ -1640,6 +1691,8 @@ function crash(kind) {
     }
     const card = document.getElementById('over-card');
     card.classList.toggle('record', record || first);
+    // sometimes he takes it worse than others
+    card.classList.toggle('cheeky', !(record || first) && Math.random() < .45);
     document.getElementById('over-title').textContent =
         record ? 'Best yet!' : first ? 'First run!' : 'Ouch!';
     document.getElementById('over-line').textContent = KINDS[kind].line;
