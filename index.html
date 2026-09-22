@@ -120,8 +120,8 @@ body {
 #hero.fall .arm-a { transform: rotate(-30deg); }
 #hero.fall .arm-b { transform: rotate(52deg); }
 
-/* sliding: folded forward over the blades */
-#hero.slide { transform: translateY(14px) rotate(-62deg) scale(.96); }
+/* sliding: down on his side, blades kicked out front (the pose itself is set in the
+   loop, since the jump writes #hero's transform inline every frame and would win) */
 #hero.slide .leg-a { transform: rotate(52deg); }
 #hero.slide .leg-b { transform: rotate(36deg); }
 
@@ -293,10 +293,6 @@ body {
                     <path d="M 45 42 C 44 36, 62 36, 61 42 L 62 68 L 44 68 Z" fill="#2FA8E0" stroke-width="2.4"/>
                     <path d="M 47 44 L 48 66" stroke="#1C82B4" stroke-width="4" opacity=".5"/>
                     <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
-                    <path d="M 46.2 29 C 45.6 19.4, 51.4 15.2, 58 15.2
-                             C 65 15.2, 70.2 19.4, 70.2 25.6 C 69 23.4, 67.6 24.4, 66.2 22.4
-                             C 64 21.6, 59 20.6, 54.4 22.2 C 50.6 23.6, 48 26.4, 46.2 29 Z"
-                          fill="#F2C75C" stroke-width="2.2"/>
                     <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
                              C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
                           fill="#F2C75C" stroke-width="2.2"/>
@@ -361,7 +357,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v5';
+const APP_VERSION = 'v6';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -527,6 +523,8 @@ const SPEED_MIN = 340, SPEED_MAX = 720, SPEED_RAMP = 11;   // px/s, and px/s per
 const GRAVITY = 2400, JUMP_V = 830, BOOST_V = 720;
 const HOLD_LIFT = 1250;          // while the jump is held, gravity is fought
 const DIVE_V = 1100;             // a slide called for in mid-air comes down hard
+const SLIDE_DEG = -76, SLIDE_X = 66, SLIDE_Y = -20; // how far over, forward and up off the ground he goes
+const SLIDE_IN = .1, SLIDE_OUT = .13;               // seconds to get down, and to get back up
 const HOLD_MAX = .22;            // for this long at most
 
 const hero = document.getElementById('hero');
@@ -534,7 +532,7 @@ const gameEl = document.getElementById('game');
 
 const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
-    y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false,
+    y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     spawnIn: 420, things: [], t: 0
 };
 
@@ -547,7 +545,7 @@ const heroBox = () => {
     // a forgiving box: narrower than the art, and much shorter when sliding
     const r = hero.getBoundingClientRect();
     const inset = r.width * 0.3;
-    return world.sliding && world.y <= 0
+    return world.slideT > .55
         ? { x: r.left + inset * .6, y: r.bottom - r.height * .42, w: r.width - inset * 1.2, h: r.height * .42 }
         : { x: r.left + inset, y: r.top + r.height * .12, w: r.width - inset * 2, h: r.height * .88 };
 };
@@ -652,6 +650,7 @@ function slideOn() {
     world.holding = false;
     world.sliding = true;
     play('slide');
+    if (world.y <= 0) dust();
 }
 function slideOff() {
     world.sliding = false;
@@ -701,10 +700,15 @@ function frame(now) {
         if (world.jumps > 0) { play('land'); dust(); }
         world.y = 0; world.vy = 0; world.jumps = 0;
     }
-    hero.style.transform = `translateY(${-world.y}px)`;
+    // ease into and out of the slide, folded into the transform the jump writes
+    const down = world.sliding && world.y <= 0;
+    world.slideT = Math.max(0, Math.min(1, world.slideT + dt / (down ? SLIDE_IN : -SLIDE_OUT)));
+    const s = world.slideT;
+    hero.style.transform = `translateY(${-world.y}px)`
+        + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '');
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
     const lost = hero.classList.contains('lost') ? ' lost' : '';
-    if (world.sliding && world.y <= 0) hero.className = 'slide' + lost;
+    if (world.slideT > .5) hero.className = 'slide' + lost;
     else hero.className = (world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run')
                         + (world.jumps > 1 ? ' dbl' : '') + lost;
 
@@ -801,7 +805,7 @@ function begin() {
     world.things.forEach(t => t.el.remove());
     Object.assign(world, {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
-        y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false,
+        y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
