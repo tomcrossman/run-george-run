@@ -126,6 +126,12 @@ body {
 #hero.slide .leg-a { transform: rotate(52deg); }
 #hero.slide .leg-b { transform: rotate(36deg); }
 
+/* a somersault: tucked up, turning over */
+#hero.trick .leg-a { transform: rotate(-66deg); }
+#hero.trick .leg-b { transform: rotate(-48deg); }
+#hero.trick .arm-a { transform: rotate(-38deg); }
+#hero.trick .arm-b { transform: rotate(32deg); }
+
 /* showtime: a note held into the microphone, and a spin (the spin itself is in the loop) */
 #hero.sing .arm-a { transform: rotate(-104deg); }
 #hero.sing .arm-b { transform: rotate(44deg); }
@@ -617,7 +623,7 @@ body {
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump — hold for higher</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-boost"/></svg>Tap again</span><span class="what">blade boost, mid-air</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide under it</span></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime, and a combo</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime on the ground, a flip in the air</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-capy"/></svg>RIDE!</span><span class="what">ride the big capybara</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-fudge"/></svg>FUDGE!</span><span class="what">he takes one hit for you</span></div>
             </div>
@@ -642,7 +648,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v29';
+const APP_VERSION = 'v30';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -762,6 +768,8 @@ const SFX = {
                   hiss(t, { dur: .2, from: 900, to: 300, vol: .14 }); },
     smash: t => { tone(t, { freq: 190, to: 60, dur: .18, type: 'sawtooth', vol: .2 });
                   hiss(t, { dur: .22, from: 2400, to: 400, vol: .2 }); },
+    trick: t => { tone(t, { freq: 300, to: 900, dur: .3, type: 'triangle', vol: .2 });
+                  hiss(t, { dur: .34, from: 2400, to: 600, vol: .17 }); },
     sing:  t => [523, 659, 784, 1046].forEach((f, i) =>
                   tone(t, { freq: f, dur: .34, type: 'triangle', vol: .19, at: i * .13 })),
     dance: t => { [392, 523, 392].forEach((f, i) =>
@@ -883,7 +891,6 @@ function stopMusic() { clearInterval(musicTimer); musicTimer = null; }
 const SPEED_MIN = 340, SPEED_MAX = 720, SPEED_RAMP = 11;   // px/s, and px/s per second
 const GRAVITY = 2400, JUMP_V = 830, BOOST_V = 720;
 const HOLD_LIFT = 1250;          // while the jump is held, gravity is fought
-const DIVE_V = 1100;             // a slide called for in mid-air comes down hard
 const SLIDE_DEG = -76, SLIDE_X = 66, SLIDE_Y = -20; // how far over, forward and up off the ground he goes
 const SLIDE_IN = .1, SLIDE_OUT = .13;               // seconds to get down, and to get back up
 const RIDE_TIME = 7;             // seconds in the saddle
@@ -899,6 +906,7 @@ const PER_METRE = 1;             // the base earner, so a long run still counts
 const CAPY_PTS = 25, MOVE_PTS = 50, SMASH_PTS = 75;
 const COMBO_MAX = 5, COMBO_HOLD = 4;        // how high it stacks, and how long it lasts
 const MOVE_DUR = .8;             // how long a turn on stage lasts
+const TRICK_DUR = .5, TRICK_PTS = 75;   // a somersault, and what one is worth
 const MOVE_PULL = 320;           // and how far away the capybaras can hear it
 const HOLD_MAX = .22;            // for this long at most
 
@@ -908,7 +916,8 @@ const gameEl = document.getElementById('game');
 const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST, hopFrom: null,
+    trickT: 0, tricked: false,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
     spawnIn: 420, things: [], t: 0
 };
@@ -1095,14 +1104,19 @@ applySound();
 
 /* ---- input --------------------------------------------------------- */
 function jump() {
-    if (!world.running) return;
+    if (!world.running || world.jumps > 1) return;
+    // keep what this hop interrupted, so a swipe that began with this press can hand
+    // it straight back — the boost as readily as the jump
+    world.hopFrom = { y: world.y, vy: world.vy, jumps: world.jumps };
+    world.jumpAt = world.t;
+    world.held = 0; world.holding = true;
+    endMove();
     if (world.jumps === 0) {
-        world.vy = JUMP_V; world.jumps = 1; world.held = 0; world.holding = true;
-        world.jumpAt = world.t; endMove();
+        world.vy = JUMP_V; world.jumps = 1;
         play('jump'); dust();
-    } else if (world.jumps === 1) {
+    } else {
         // the blades give a second push the way a spring would
-        world.vy = BOOST_V; world.jumps = 2; world.held = 0; world.holding = true;
+        world.vy = BOOST_V; world.jumps = 2;
         play('boost'); sparks();
         hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
     }
@@ -1138,8 +1152,8 @@ function perform(kind) {
     if (!world.running || world.sliding || world.moveT > 0) return;
     // the press that began the swipe already asked for a jump, and a finger takes a
     // moment to travel — so take the jump back first, then check he is on the ground
-    if (freshJump()) { world.y = 0; world.vy = 0; world.jumps = 0; }
-    if (world.y > 0) return;
+    if (freshJump()) undoJump();
+    if (world.y > 0) return trick();
     world.holding = false;
     world.move = kind; world.moveT = MOVE_DUR;
     play(kind);
@@ -1194,6 +1208,17 @@ function gain(text, gold) {
     return d;
 }
 
+// up there the stage moves make no sense, so a swipe turns him over instead:
+// once per jump, worth points, and no help at all with what is coming
+function trick() {
+    if (world.tricked || world.riding > 0) return;
+    world.tricked = true; world.trickT = TRICK_DUR;
+    world.holding = false;
+    play('trick');
+    combo();
+    award(TRICK_PTS, true);
+}
+
 function notes(n) {
     const r = hero.getBoundingClientRect();
     for (let i = 0; i < n; i++) {
@@ -1219,18 +1244,19 @@ function endMove() {
     mountEl.classList.remove('dance', 'sing');
 }
 
-// a jump from the press that started a swipe, close enough behind to undo
-const freshJump = () => world.jumps === 1 && world.vy > 0 && world.t - world.jumpAt < .32;
+// a hop from the press that started a swipe, close enough behind to undo
+const freshJump = () => world.hopFrom && world.t - world.jumpAt < .32;
+function undoJump() {
+    Object.assign(world, world.hopFrom);
+    world.hopFrom = null; world.holding = false;
+}
 
 function slideOn() {
     if (!world.running || world.sliding || world.riding > 0) return;
-    // every swipe starts with a press, and that press already asked for a jump.
-    // take it back if it was only a beat ago, so the slide stays on the ground
-    if (freshJump()) {
-        world.y = 0; world.vy = 0; world.jumps = 0;
-    } else if (world.y > 0) {
-        world.vy = Math.min(world.vy, -DIVE_V);   // already up there: dive for it
-    }
+    // every swipe starts with a press, and that press already asked for a hop:
+    // hand it back if it was only a beat ago, and otherwise keep to the ground
+    if (freshJump()) undoJump();
+    if (world.y > 0) return;
     world.holding = false;
     world.sliding = true;
     endMove();
@@ -1318,6 +1344,7 @@ function frame(now) {
     if (world.y <= 0) {
         if (world.jumps > 0) { play('land'); dust(); }
         world.y = 0; world.vy = 0; world.jumps = 0;
+        world.tricked = false; world.trickT = 0;
     }
     // ease into and out of the slide, folded into the transform the jump writes
     const down = world.sliding && world.y <= 0;
@@ -1326,9 +1353,11 @@ function frame(now) {
     // the dance is a pirouette: a turn on the spot, about his own axis
     const spin = world.move === 'dance' && world.riding === 0
         ? Math.cos(2 * Math.PI * (1 - world.moveT / MOVE_DUR)) : 1;
+    const flip = world.trickT > 0 ? 360 * (1 - world.trickT / TRICK_DUR) : 0;
     hero.style.transform = `translate(${RIDE_FWD * world.rideT}px, ${-(world.y + RIDE_LIFT * world.rideT)}px)`
         + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '')
-        + (spin < 1 ? ` scaleX(${Math.sign(spin) * Math.max(.34, Math.abs(spin))})` : '');
+        + (spin < 1 ? ` scaleX(${Math.sign(spin) * Math.max(.34, Math.abs(spin))})` : '')
+        + (flip ? ` rotate(${flip}deg)` : '');
     if (world.riding > 0) {
         mountEl.style.transform = `translateY(${-world.y}px)`;
         mountEl.classList.toggle('dance', world.move === 'dance');
@@ -1336,6 +1365,7 @@ function frame(now) {
     }
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
     if (world.moveT > 0 && (world.moveT = Math.max(0, world.moveT - dt)) === 0) endMove();
+    if (world.trickT > 0) world.trickT = Math.max(0, world.trickT - dt);
     if (world.safeT > 0) world.safeT = Math.max(0, world.safeT - dt);
     if (world.riding > 0) {
         world.riding = Math.max(0, world.riding - dt);
@@ -1352,6 +1382,7 @@ function frame(now) {
     // blade) stays put rather than snapping back to a jump
     if (world.rideT > .5)
         hero.className = 'ride' + (world.move ? ' ' + world.move : '') + lost;
+    else if (world.trickT > 0) hero.className = 'trick' + lost;
     else if (world.move) hero.className = world.move + lost;
     else if (world.slideT > .5) hero.className = 'slide' + lost;
     else hero.className = (world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run')
@@ -1545,7 +1576,8 @@ function begin() {
     Object.assign(world, {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST, hopFrom: null,
+    trickT: 0, tricked: false,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
         spawnIn: 520, things: [], t: 0
     });
