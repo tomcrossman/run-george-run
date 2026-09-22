@@ -327,13 +327,15 @@ body {
     font-size: 34px; letter-spacing: .02em;
 }
 .card p { margin: 6px 0 0; font-size: 12.5px; font-weight: 700; line-height: 1.5; opacity: .75; }
-.card .keys { margin-top: 12px; display: grid; gap: 7px; }
-.row {
-    display: flex; align-items: center; gap: 9px; justify-content: center;
-    font-size: 11.5px; font-weight: 800;
+.card .keys {
+    margin-top: 12px; display: grid; grid-template-columns: max-content 1fr;
+    gap: 7px 9px; align-items: center; text-align: left;
 }
+.row { display: contents; }
+.what { font-size: 11px; font-weight: 800; }
+.key .ico { width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; opacity: .75; }
 .key {
-    min-width: 62px; padding: 5px 8px;
+    flex: none; padding: 5px 7px; white-space: nowrap;
     border: 2.5px solid var(--ink); border-radius: 9px; background: #eef4fb;
     font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
 }
@@ -428,6 +430,30 @@ body {
         <circle cx="4.3" cy="4.4" r="1.9"/><circle cx="9.1" cy="4.1" r="1.7"/>
         <path d="M 1.6 9.4 C 1.6 6.6, 4 5, 7 5 C 10.4 5, 12.6 6.6, 12.6 9
                  C 12.6 11, 10.6 12.2, 7.6 12.2 L 2.6 12.2 C 2 12.2, 1.6 11, 1.6 9.4 Z"/>
+    </symbol>
+    <symbol id="i-tap" viewBox="0 0 14 14">
+        <circle cx="5.4" cy="8.6" r="3.1"/>
+        <path d="M 9.2 5.4 C 10.6 6.3, 11.2 7.6, 11.2 9" fill="none" stroke="currentColor"
+              stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M 10.8 2.8 C 13 4.2, 13.8 6.4, 13.6 8.8" fill="none" stroke="currentColor"
+              stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-boost" viewBox="0 0 14 14">
+        <path d="M 3 7.6 L 7 3.6 L 11 7.6 M 3 11.6 L 7 7.6 L 11 11.6" fill="none"
+              stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-down" viewBox="0 0 14 14">
+        <path d="M 7 2.4 V 10.6 M 3.4 7.2 L 7 11.2 L 10.6 7.2" fill="none"
+              stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-across" viewBox="0 0 14 14">
+        <path d="M 2.2 7 H 11.8 M 4.8 4.2 L 2 7 L 4.8 9.8 M 9.2 4.2 L 12 7 L 9.2 9.8" fill="none"
+              stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-fudge" viewBox="0 0 14 14">
+        <path d="M 4.6 6.2 C 2.6 5.2, 1 4, 1.6 2.8 C 2.3 1.6, 4.2 3.2, 5.4 5 Z"/>
+        <path d="M 9.4 6.2 C 11.4 5.2, 13 4, 12.4 2.8 C 11.7 1.6, 9.8 3.2, 8.6 5 Z"/>
+        <ellipse cx="7" cy="9" rx="4.7" ry="4"/>
     </symbol>
     <symbol id="i-cup" viewBox="0 0 14 14">
         <path d="M 4 1.4 H 10 V 5.2 C 10 7.3, 8.7 8.6, 7 8.6 C 5.3 8.6, 4 7.3, 4 5.2 Z"/>
@@ -584,12 +610,12 @@ body {
             <h1>Run George,<br>Run</h1>
             <p>Two blades, one hat, no brakes.</p>
             <div class="keys">
-                <div class="row"><span class="key">Tap</span> jump — hold for a bigger one</div>
-                <div class="row"><span class="key">Tap again</span> blade boost, mid-air</div>
-                <div class="row"><span class="key">Swipe down</span> slide under it</div>
-                <div class="row"><span class="key">Swipe across</span> showtime — points, and a combo</div>
-                <div class="row"><span class="key">RIDE!</span> run into the big capybara</div>
-                <div class="row"><span class="key">FUDGE!</span> he takes one hit for you</div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump — hold for higher</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-boost"/></svg>Tap again</span><span class="what">blade boost, mid-air</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide under it</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime, and a combo</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-capy"/></svg>RIDE!</span><span class="what">ride the big capybara</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-fudge"/></svg>FUDGE!</span><span class="what">he takes one hit for you</span></div>
             </div>
             <button class="btn" id="go">Run!</button>
         </div>
@@ -612,7 +638,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v23';
+const APP_VERSION = 'v25';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1276,7 +1302,9 @@ function frame(now) {
 
     const lost = (hero.classList.contains('lost') ? ' lost' : '')
                + (world.carry ? ' carry' : '') + (world.safeT > 0 ? ' safe' : '');
-    if (world.rideT > .5 && world.y <= 0)
+    // still astride while the capybara hops, so the pose (and the hidden far
+    // blade) stays put rather than snapping back to a jump
+    if (world.rideT > .5)
         hero.className = 'ride' + (world.move ? ' ' + world.move : '') + lost;
     else if (world.move) hero.className = world.move + lost;
     else if (world.slideT > .5) hero.className = 'slide' + lost;
