@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Run George, Run</title>
+<title>Run Boys, Run</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#cfe4f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Run George, Run">
+<meta name="apple-mobile-web-app-title" content="Run Boys, Run">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Run George, Run — a side-scrolling dash on two blades. Tap to jump, tap again to boost, swipe down to slide.">
+<meta name="description" content="Run Boys, Run — a side-scrolling dash. Tap to jump, tap again to boost, swipe down to slide, and pick who runs.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -648,7 +648,7 @@ body {
         <div class="inner">
             <div class="avatar portrait"></div>
 
-            <h1 id="title">Run George,<br>Run</h1>
+            <h1>Run Boys,<br>Run</h1>
             <p id="tagline">Two blades, one hat, no brakes.</p>
             <div class="keys">
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump, or flick up</span></div>
@@ -693,8 +693,8 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v51';
-document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
+const APP_VERSION = 'v52';
+document.getElementById('version').textContent = `Run Boys, Run ${APP_VERSION}`;
 
 /* ============================================================
    BACKDROP — three strips, each drawn twice so it can loop
@@ -1472,21 +1472,21 @@ const HERO_GEORGE = `
 const HERO_TWINS = `
 <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
                 <g class="hifive">
-                    <path d="M 57.64 52.92 C 55.14 40.92, 53.64 22.92, 48.6 14"
+                    <path d="M 57.64 57.33 C 55.14 45.33, 53.64 27.33, 48.6 10"
                           fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 57.64 52.92 C 55.14 40.92, 53.64 22.92, 48.6 14"
+                    <path d="M 57.64 57.33 C 55.14 45.33, 53.64 27.33, 48.6 10"
                           fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <path d="M 34.1 56.61 C 35.6 44.61, 39.1 26.61, 37.4 14"
+                    <path d="M 34.1 61.02 C 35.6 49.02, 39.1 31.020000000000003, 37.4 10"
                           fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 34.1 56.61 C 35.6 44.61, 39.1 26.61, 37.4 14"
+                    <path d="M 34.1 61.02 C 35.6 49.02, 39.1 31.020000000000003, 37.4 10"
                           fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <circle cx="49" cy="11.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
-                    <circle cx="37" cy="11.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
-                    <path d="M 43 13 L 43 5.5 M 37.8 5 L 34.8 1 M 48.2 5 L 51.2 1
-                             M 33.3 9 L 28.3 7.5 M 52.7 9 L 57.7 7.5"
+                    <circle cx="49" cy="7.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <circle cx="37" cy="7.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <path d="M 43 9 L 43 1.5 M 37.8 1 L 34.8 -3 M 48.2 1 L 51.2 -3
+                             M 33.3 5 L 28.3 3.5 M 52.7 5 L 57.7 3.5"
                           fill="none" stroke="#F4B32C" stroke-width="2.8" stroke-linecap="round"/>
                 </g>
-                <g transform="translate(5.46 13.65) scale(0.895)">
+                <g transform="translate(5.46 18.061) scale(0.895)">
                 <g class="leg-b" opacity=".8">
                     <path d="M 25 82 L 26 116" stroke="#FFDCC0" stroke-width="10.5"/>
                     <path d="M 25 78 L 25.2 112" stroke="#39415A" stroke-width="11.5"/>
@@ -1544,9 +1544,12 @@ const HERO_TWINS = `
                               fill="none" stroke="#388B5A" stroke-width="2" opacity=".8"/>
                     <path d="M 30 43 L 29.5 49 M 33 43 L 33.5 49"
                           fill="none" stroke="#FFFDF8" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M 22.5 18 C 16.5 24, 16 35, 18.5 42
-                             C 23 43.5, 27 41, 26 35.5
-                             C 24 30, 22.5 24, 23 19 Z"
+                    <path d="M 29.5 33 L 30 43" stroke="#241F2E" stroke-width="11.5"/>
+                    <path d="M 29.5 33 L 30 43" stroke="#FFDCC0" stroke-width="8"/>
+                    <g transform="translate(0 -4)">
+                    <path d="M 22.5 18 C 17 23, 16.5 32, 18.8 37.5
+                             C 22.7 39, 26.4 36.6, 25.8 32
+                             C 24 27, 22.5 22.5, 23 19 Z"
                           fill="#7A5230" stroke-width="2.2"/>
                     <circle cx="32" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
                     <path d="M 19 27.5 C 17.5 13.5, 26 10.5, 32.5 11.2
@@ -1577,6 +1580,7 @@ const HERO_TWINS = `
                     <ellipse cx="30" cy="32.5" rx="3" ry="1.8" fill="#F08C7A" opacity=".45"
                              stroke="none"/>
                     
+                    </g>
                 </g>
 
                 <g class="arm-up-a" style="transform-origin:32px 48px">
@@ -1605,7 +1609,7 @@ const HERO_TWINS = `
                     <rect x="25.5" y="123" width="17" height="6" rx="3"
                           fill="#F4F6FA" stroke-width="2.2"/>
                 </g></g>
-                <g transform="translate(3.12 7.8) scale(0.94)">
+                <g transform="translate(3.12 12.206) scale(0.94)">
                 <g class="leg-b" opacity=".8">
                     <path d="M 51 82 L 52 116" stroke="#FFDCC0" stroke-width="10.5"/>
                     <path d="M 51 78 L 51.6 94" stroke="#39415A" stroke-width="12.5"/>
@@ -1635,9 +1639,12 @@ const HERO_TWINS = `
                     <path d="M 49 45 L 50 68" stroke="#CE6A1E" stroke-width="3.6"
                           opacity=".55"/>
                     
-                    <path d="M 48.5 18 C 43.5 22, 43 29, 45 34
-                             C 48.5 35.5, 52 33.5, 51.5 29.5
-                             C 50 26, 48.5 22, 49 19 Z"
+                    <path d="M 55.5 33 L 56 43" stroke="#241F2E" stroke-width="11.5"/>
+                    <path d="M 55.5 33 L 56 43" stroke="#FFDCC0" stroke-width="8"/>
+                    <g transform="translate(0 -4)">
+                    <path d="M 48.5 18 C 43 23, 42.5 32, 44.8 37.5
+                             C 48.7 39, 52.4 36.6, 51.8 32
+                             C 50 27, 48.5 22.5, 49 19 Z"
                           fill="#DCB25E" stroke-width="2.2"/>
                     <circle cx="58" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
                     <path d="M 45 27.5 C 43.5 13.5, 52 10.5, 58.5 11.2
@@ -1668,6 +1675,7 @@ const HERO_TWINS = `
                                 stroke="#241F2E" stroke-width="2"/>
                         <path d="M 69.5 25 q 1.8 .4 2.4 1.6" fill="none" stroke="#241F2E"
                               stroke-width="1.8"/>
+                    </g>
                     </g>
                 </g>
 
@@ -1758,7 +1766,19 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
     <path d="M 25 64 C 26 50.5, 35 44, 45 44 C 56 44, 64.5 50.5, 66 64 Z" fill="#F58A34"
           stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
     
-    
+    <path d="M 31.2 19.75
+                 C 27.0 29.5, 28.5 37.3,
+                   32.7 41.2
+                 L 39.9 39.25
+                 C 35.7 34.0, 34.5 28.0,
+                   34.8 20.5 Z"
+              fill="#DCB25E" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/><path d="M 58.8 19.75
+                 C 63.0 29.5, 61.5 37.3,
+                   57.3 41.2
+                 L 50.1 39.25
+                 C 54.3 34.0, 55.5 28.0,
+                   55.2 20.5 Z"
+              fill="#DCB25E" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/>
     <circle cx="59.4" cy="26.8" r="3.45" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.7"/>
     <circle cx="45" cy="25" r="15" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8"/>
     <path d="M 30 23.5 C 28.799999999999997 8.5, 37.5 3.700000000000003,
@@ -1809,7 +1829,6 @@ const CASTS = {
     george: {
         pick: 'George',
         alt: 'George, running on two blades',
-        title: 'Run George,<br>Run',
         tag: 'Two blades, one hat, no brakes.',
         hero: HERO_GEORGE,
         portrait: PORTRAIT_GEORGE,
@@ -1839,7 +1858,6 @@ const CASTS = {
     twins: {
         pick: 'Henry &amp; Arty',
         alt: 'Henry and Arty, running together',
-        title: 'Run Boys,<br>Run',
         tag: 'Two brothers, one sister, no brakes.',
         hero: HERO_TWINS,
         portrait: PORTRAIT_TWINS,
@@ -1889,7 +1907,6 @@ function applyCast(id) {
     heroSvg.setAttribute('aria-label', CAST.alt);
     mountEl.innerHTML = CAST.mount || CAST.ride.mount;
     document.querySelectorAll('.portrait').forEach(el => { el.innerHTML = CAST.portrait; });
-    document.getElementById('title').innerHTML = CAST.title;
     document.getElementById('tagline').textContent = CAST.tag;
     rowBoost.innerHTML = helpRow('i-boost', 'Tap again', CAST.boost);
     rowRide.innerHTML = helpRow(CAST.ride.icon, CAST.ride.key, CAST.ride.help);
