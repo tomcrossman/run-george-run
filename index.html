@@ -366,18 +366,10 @@ body {
     background: var(--panel); border: 3.5px solid var(--ink); border-radius: 22px;
     box-shadow: 8px 8px 0 var(--ink); text-align: center;
 }
-/* George himself, on the way in */
-.avatar {
-    width: 104px; height: 104px; margin: 0 auto 10px;
-    border-radius: 50%; overflow: hidden;
-    background: linear-gradient(#cfe4f7, #eaf3fb);
-    border: 3.5px solid var(--ink); box-shadow: var(--pop);
-}
-.avatar svg { width: 100%; height: 100%; display: block; }
-
 .card h1 {
-    margin: 0; font-family: var(--font-display); font-weight: 400; line-height: .92;
-    font-size: 48px; letter-spacing: .01em;
+    margin: 0; font-family: var(--font-display); font-weight: 400; line-height: 1.02;
+    /* the name stays on one line and takes whatever size the card can give it */
+    font-size: clamp(25px, 8.4vw, 36px); letter-spacing: .01em; white-space: nowrap;
 }
 .card h2 {
     margin: 0 0 6px; font-family: var(--font-display); font-weight: 400;
@@ -410,6 +402,10 @@ body {
     width: 48px; height: 48px; border-radius: 50%; overflow: hidden;
     background: linear-gradient(#cfe4f7, #eaf3fb); border: 2.5px solid var(--ink);
 }
+/* on the start card they stand in for the portrait that used to sit up here */
+.casts.big { margin-top: 12px; }
+.casts.big .cast { padding: 9px 6px 7px; font-size: 16px; }
+.casts.big .face { width: 62px; height: 62px; border-width: 3px; }
 .cast .face svg { width: 100%; height: 100%; display: block; }
 .cast .face .ko, .cast .face .wob, .cast .face .tongue, .cast .face .hand { display: none; }
 /* on the run-over card there is no room for the names, so it is faces only */
@@ -443,8 +439,8 @@ body {
 
 /* a short screen gets a tighter card, so the start card still fits in one view */
 @media (max-height: 720px) {
-    .avatar { width: 78px; height: 78px; margin-bottom: 6px; }
-    .card h1 { font-size: 28px; }
+    .casts.big .face { width: 50px; height: 50px; }
+    .casts.big .cast { padding: 6px 5px 5px; font-size: 14px; }
     .card .keys { margin-top: 8px; gap: 5px 8px; }
     .cast { font-size: 13px; padding: 5px 4px 4px; }
     .switch { margin-top: 10px; }
@@ -478,7 +474,6 @@ body {
 .cheer svg { width: 100%; height: 100%; display: block; }
 @keyframes cheerIn { from { transform: scale(0) rotate(-20deg); } to { transform: scale(1) rotate(-6deg); } }
 .portrait .ok, .portrait .ko, .portrait .wob, .portrait .tongue, .portrait .hand { display: none; }
-.avatar .ok { display: block; }
 #over-card.record .cheer .ok, #over-card.record .cheer .hand { display: block; }
 #over-card:not(.record) .cheer .ko { display: block; }
 #over-card:not(.record):not(.cheeky) .cheer .wob { display: block; }
@@ -650,9 +645,8 @@ body {
 
     <div class="card" id="start-card">
         <div class="inner">
-            <div class="avatar portrait"></div>
-
-            <h1>Run Boys,<br>Run</h1>
+            <h1>Run Boys, Run</h1>
+            <div class="casts big" id="pick-start"></div>
             <p id="tagline">Two blades, one hat, no brakes.</p>
             <div class="keys">
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump, or flick up</span></div>
@@ -662,7 +656,6 @@ body {
                 <div class="row" id="row-ride"></div>
                 <div class="row" id="row-buddy"></div>
             </div>
-            <div class="casts" id="pick-start"></div>
             <button class="btn" id="go">Run!</button>
         </div>
     </div>
@@ -697,7 +690,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v55';
+const APP_VERSION = 'v57';
 document.getElementById('version').textContent = `Run Boys, Run ${APP_VERSION}`;
 
 /* ============================================================
