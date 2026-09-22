@@ -127,11 +127,13 @@ body {
 #hero.slide .leg-b { transform: rotate(36deg); }
 
 /* showtime: a note held into the microphone, and a spin (the spin itself is in the loop) */
-#hero.sing .arm-a { transform: rotate(-104deg); }
-#hero.sing .arm-b { transform: rotate(44deg); }
-#hero.sing .leg-a { transform: rotate(-12deg); }
-#hero.sing .leg-b { transform: rotate(20deg); }
-#hero.sing .torso { transform: rotate(7deg); }
+#hero.sing .arm-a { transform: rotate(-112deg); }
+#hero.sing .arm-b { transform: rotate(52deg); }
+#hero.sing .leg-a { transform: rotate(-22deg); }
+#hero.sing .leg-b { transform: rotate(26deg); }
+/* chest open and chin up, holding the note — tipping the torso forward instead
+   left the head down over the microphone and read as a hunch */
+#hero.sing .torso { transform: rotate(-7deg); }
 #mic { display: none; }
 #hero.sing #mic { display: block; }
 #hero.dance .arm-a { transform: rotate(-58deg); }
@@ -330,6 +332,15 @@ body {
     background: var(--panel); border: 3.5px solid var(--ink); border-radius: 22px;
     box-shadow: 8px 8px 0 var(--ink); text-align: center;
 }
+/* George himself, on the way in */
+.avatar {
+    width: 104px; height: 104px; margin: 0 auto 10px;
+    border-radius: 50%; overflow: hidden;
+    background: linear-gradient(#cfe4f7, #eaf3fb);
+    border: 3.5px solid var(--ink); box-shadow: var(--pop);
+}
+.avatar svg { width: 100%; height: 100%; display: block; }
+
 .card h1 {
     margin: 0; font-family: var(--font-display); font-weight: 400; line-height: .92;
     font-size: 48px; letter-spacing: .01em;
@@ -582,7 +593,7 @@ body {
                 <g class="arm-a">
                     <path d="M 58 50 L 54.5 62 L 65 62.5" fill="none" stroke="#FFDCC0"
                           stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <g id="mic">
+                    <g id="mic" transform="translate(-1.6 2.8)">
                         <path d="M 62.4 62.4 L 67 63.6" stroke="#241F2E" stroke-width="3.6"/>
                         <rect x="64" y="59.2" width="10" height="9.8" rx="4.9"
                               fill="#3C4254" stroke-width="2.2"/>
@@ -618,10 +629,26 @@ body {
 
     <div class="card" id="start-card">
         <div class="inner">
+            <div class="avatar">
+                <svg viewBox="31 2 54 45" stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
+                             C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
+                          fill="#F2C75C" stroke-width="2.2"/>
+                    <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
+                    <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
+                    <path d="M 61 34.5 q 3.4 2.4 6 -.6" fill="none" stroke-width="1.9"/>
+                    <path d="M 48 17 C 50 8, 62 6, 68 12 L 70 18 Z" fill="#B5703A" stroke-width="2.3"/>
+                    <path d="M 38 19.5 C 46 14.5, 74 13.5, 82 19 C 74 24, 46 24.5, 38 19.5 Z"
+                          fill="#B5703A" stroke-width="2.3"/>
+                    <path d="M 44 19 C 52 16, 74 15.5, 79 18.5" fill="none"
+                          stroke="#D69B5F" stroke-width="1.5"/>
+                </svg>
+            </div>
             <h1>Run George,<br>Run</h1>
             <p>Two blades, one hat, no brakes.</p>
             <div class="keys">
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap or flick up</span><span class="what">jump — hold for higher</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump, or flick up</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-boost"/></svg>Tap again</span><span class="what">blade boost, mid-air</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide, or dive down</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime, and a combo</span></div>
@@ -649,7 +676,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v35';
+const APP_VERSION = 'v37';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
