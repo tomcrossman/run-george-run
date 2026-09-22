@@ -93,10 +93,11 @@ body {
 }
 #hero svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
-.leg-a, .leg-b, .arm-a, .arm-b, .torso { transform-box: fill-box; }
+.leg-a, .leg-b, .torso { transform-box: fill-box; }
 .leg-a, .leg-b { transform-origin: 46% 4%; }
-.arm-a { transform-origin: 33% 2%; }
-.arm-b { transform-origin: 37% 2%; }
+.arm-a, .arm-b { transform-box: view-box; }
+.arm-a { transform-origin: 58px 50px; }
+.arm-b { transform-origin: 54px 50px; }
 
 /* running: the blades swing, the arms counter, the body bobs */
 #hero.run .leg-a { animation: swingA var(--cyc) ease-in-out infinite; }
@@ -124,6 +125,19 @@ body {
    loop, since the jump writes #hero's transform inline every frame and would win) */
 #hero.slide .leg-a { transform: rotate(52deg); }
 #hero.slide .leg-b { transform: rotate(36deg); }
+
+/* showtime: a note held into the microphone, and a spin (the spin itself is in the loop) */
+#hero.sing .arm-a { transform: rotate(-104deg); }
+#hero.sing .arm-b { transform: rotate(44deg); }
+#hero.sing .leg-a { transform: rotate(-12deg); }
+#hero.sing .leg-b { transform: rotate(20deg); }
+#hero.sing .torso { transform: rotate(7deg); }
+#mic { display: none; }
+#hero.sing #mic { display: block; }
+#hero.dance .arm-a { transform: rotate(-58deg); }
+#hero.dance .arm-b { transform: rotate(62deg); }
+#hero.dance .leg-a { transform: rotate(-30deg); }
+#hero.dance .leg-b { transform: rotate(26deg); }
 
 /* the hat is only loosely attached — it lifts on the way up, further on the boost */
 #hero-hat { transform-box: fill-box; transform-origin: 50% 100%;
@@ -166,6 +180,9 @@ body {
     position: absolute; inset: 0; z-index: 9; pointer-events: none;
     background: #fff; opacity: 0;
 }
+.note {
+    position: absolute; z-index: 6; pointer-events: none;
+}
 .dust {
     position: absolute; bottom: 24%; z-index: 4; pointer-events: none;
     width: 14px; height: 14px; border-radius: 50%;
@@ -194,6 +211,17 @@ body {
 .plate .cap { display: block; font-family: var(--font); font-size: 8.5px; font-weight: 900;
               letter-spacing: .18em; opacity: .55; margin-bottom: -3px; }
 .plate.mid { font-size: 21px; opacity: .92; }
+/* the only thing in the HUD you can actually press */
+#mute {
+    pointer-events: auto; cursor: pointer; align-self: center;
+    padding: 6px 7px 3px; line-height: 0;
+    background: var(--panel); border: 3px solid var(--ink); border-radius: 13px;
+    box-shadow: var(--pop);
+}
+#mute:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+#mute .off { display: none; }
+#mute.muted .on { display: none; }
+#mute.muted .off { display: inline; }
 /* while he is beating it, the record is his own score, and it says so */
 .plate.mid.beating { background: var(--gold); animation: beat .5s ease-in-out infinite alternate; }
 @keyframes beat { from { transform: scale(1); } to { transform: scale(1.06); } }
@@ -314,8 +342,17 @@ body {
                     </g>
                 </g>
 
-                <g class="arm-a"><path d="M 58 50 L 54.5 62 L 65 62.5" fill="none" stroke="#FFDCC0"
-                                        stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g>
+                <g class="arm-a">
+                    <path d="M 58 50 L 54.5 62 L 65 62.5" fill="none" stroke="#FFDCC0"
+                          stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <g id="mic">
+                        <path d="M 62.4 62.4 L 67 63.6" stroke="#241F2E" stroke-width="3.6"/>
+                        <rect x="64" y="59.2" width="10" height="9.8" rx="4.9"
+                              fill="#3C4254" stroke-width="2.2"/>
+                        <path d="M 66.6 61.9 L 71.4 61.9 M 66.6 66.3 L 71.4 66.3"
+                              stroke="#8B94AC" stroke-width="1.4"/>
+                    </g>
+                </g>
                 <g class="leg-a">
                     <path d="M 55 78 L 58 95" stroke="#FFDCC0" stroke-width="10.5"/>
                     <rect x="52.5" y="93" width="11" height="9" rx="3" fill="#39415A" stroke-width="2.2"/>
@@ -332,6 +369,14 @@ body {
         <div class="plate"><span class="cap">Metres</span><span id="dist">0</span></div>
         <div class="plate mid" id="bestplate"><span class="cap">Best</span><span id="best-val">0</span></div>
         <div class="plate" id="coins"><span class="cap">Capybaras</span><span id="coin-count">0</span></div>
+        <button id="mute" aria-label="Sound on or off">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
+                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 4 9 H 8 L 13 5 V 19 L 8 15 H 4 Z" fill="#241F2E"/>
+                <g class="on"><path d="M 16.5 9.5 q 2 2.5 0 5"/><path d="M 19.5 7 q 3.6 5 0 10"/></g>
+                <g class="off"><path d="M 17 9.5 L 22 14.5 M 22 9.5 L 17 14.5"/></g>
+            </svg>
+        </button>
     </div>
 
     <div class="card" id="start-card">
@@ -342,6 +387,7 @@ body {
                 <div class="row"><span class="key">Tap</span> jump — hold for a bigger one</div>
                 <div class="row"><span class="key">Tap again</span> blade boost, mid-air</div>
                 <div class="row"><span class="key">Swipe down</span> slide under it</div>
+                <div class="row"><span class="key">Swipe across</span> showtime — sing or spin</div>
             </div>
             <button class="btn" id="go">Run!</button>
         </div>
@@ -364,7 +410,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v7';
+const APP_VERSION = 'v8';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -466,6 +512,12 @@ const SFX = {
     slide: t => hiss(t, { dur: .3, from: 1400, to: 400, vol: .2 }),
     coin:  t => { tone(t, { freq: 980, dur: .08, type: 'square', vol: .16 });
                   tone(t, { freq: 1480, dur: .12, type: 'square', vol: .13, at: .07 }); },
+    sing:  t => [523, 659, 784, 1046].forEach((f, i) =>
+                  tone(t, { freq: f, dur: .34, type: 'triangle', vol: .19, at: i * .13 })),
+    dance: t => { [392, 523, 392].forEach((f, i) =>
+                      tone(t, { freq: f, to: [523, 392, 587][i], dur: .12,
+                                type: 'square', vol: .17, at: i * .11 }));
+                  hiss(t, { dur: .12, from: 3000, to: 1400, vol: .1, at: .22 }); },
     hit:   t => { tone(t, { freq: 240, to: 60, dur: .4, type: 'sawtooth', vol: .28 });
                   hiss(t, { dur: .35, from: 1200, to: 120, vol: .22 }); },
 };
@@ -568,6 +620,8 @@ const HOLD_LIFT = 1250;          // while the jump is held, gravity is fought
 const DIVE_V = 1100;             // a slide called for in mid-air comes down hard
 const SLIDE_DEG = -76, SLIDE_X = 66, SLIDE_Y = -20; // how far over, forward and up off the ground he goes
 const SLIDE_IN = .1, SLIDE_OUT = .13;               // seconds to get down, and to get back up
+const MOVE_DUR = .8;             // how long a turn on stage lasts
+const MOVE_PULL = 320;           // and how far away the capybaras can hear it
 const HOLD_MAX = .22;            // for this long at most
 
 const hero = document.getElementById('hero');
@@ -576,6 +630,7 @@ const gameEl = document.getElementById('game');
 const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
+    move: null, moveT: 0,
     spawnIn: 420, things: [], t: 0
 };
 
@@ -585,12 +640,16 @@ try { best = parseInt(localStorage.getItem(bestKey) || '0', 10) || 0; } catch (e
 
 const groundTop = () => gameEl.clientHeight * 0.24;
 const heroBox = () => {
+    // measured from the layout rather than the rendered transform, so that a spin
+    // or a slide cannot quietly shrink what he can be hit on
+    const g = gameEl.getBoundingClientRect();
+    const w = hero.offsetWidth, h = hero.offsetHeight;
+    const left = g.left + hero.offsetLeft, bottom = g.top + hero.offsetTop + h - world.y;
+    const inset = w * 0.3;
     // a forgiving box: narrower than the art, and much shorter when sliding
-    const r = hero.getBoundingClientRect();
-    const inset = r.width * 0.3;
     return world.slideT > .55
-        ? { x: r.left + inset * .6, y: r.bottom - r.height * .42, w: r.width - inset * 1.2, h: r.height * .42 }
-        : { x: r.left + inset, y: r.top + r.height * .12, w: r.width - inset * 2, h: r.height * .88 };
+        ? { x: left + inset * .6, y: bottom - h * .42, w: w - inset * 1.2, h: h * .42 }
+        : { x: left + inset, y: bottom - h * .88, w: w - inset * 2, h: h * .88 };
 };
 
 /* ---- the things that come at you ---------------------------------- */
@@ -655,7 +714,8 @@ function addThing(kind, ahead = 0, lift = null) {
     el.innerHTML = k.html;
     el.style.bottom = `calc(24% + ${lift === null ? k.lift : lift}px)`;
     gameEl.appendChild(el);
-    world.things.push({ el, kind, x: gameEl.clientWidth + 40 + ahead, w: k.w, h: k.h, dead: false });
+    world.things.push({ el, kind, x: gameEl.clientWidth + 40 + ahead, w: k.w, h: k.h,
+                       lift: lift === null ? k.lift : lift, dead: false });
 }
 
 function dust() {
@@ -667,12 +727,29 @@ function dust() {
     setTimeout(() => d.remove(), 460);
 }
 
+/* ---- the mute button ----------------------------------------------- */
+const muteBtn = document.getElementById('mute');
+const soundKey = 'rgr-sound';
+try { soundOn = localStorage.getItem(soundKey) !== 'off'; } catch (e) { /* private mode */ }
+function applySound() {
+    muteBtn.classList.toggle('muted', !soundOn);
+    if (!soundOn) stopMusic();
+    else if (world.running) startMusic();
+}
+muteBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    try { localStorage.setItem(soundKey, soundOn ? 'on' : 'off'); } catch (e) { /* private mode */ }
+    applySound();
+    if (soundOn) play('coin');
+});
+applySound();
+
 /* ---- input --------------------------------------------------------- */
 function jump() {
     if (!world.running) return;
     if (world.jumps === 0) {
         world.vy = JUMP_V; world.jumps = 1; world.held = 0; world.holding = true;
-        world.jumpAt = world.t;
+        world.jumpAt = world.t; endMove();
         play('jump'); dust();
     } else if (world.jumps === 1) {
         // the blades give a second push the way a spring would
@@ -681,6 +758,40 @@ function jump() {
         hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
     }
 }
+function perform(kind) {
+    // only on his blades, and only one turn at a time
+    if (!world.running || world.y > 0 || world.sliding || world.moveT > 0) return;
+    // the press that began the swipe already asked for a jump; take it back
+    if (world.jumps === 1 && world.t - world.jumpAt < .22) {
+        world.y = 0; world.vy = 0; world.jumps = 0;
+    }
+    world.holding = false;
+    world.move = kind; world.moveT = MOVE_DUR;
+    play(kind);
+    notes(kind === 'sing' ? 4 : 3);
+}
+function notes(n) {
+    const r = hero.getBoundingClientRect();
+    for (let i = 0; i < n; i++) {
+        const d = document.createElement('div');
+        d.className = 'note';
+        d.innerHTML = `<svg width="22" height="24" viewBox="0 0 22 24">
+            <path d="M 14 3 L 14 16" stroke="#241F2E" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 14 3 C 17 4, 20 6, 20 9" fill="none" stroke="#241F2E"
+                  stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="9.5" cy="16.5" rx="5.5" ry="4.5" fill="#f4b32c"
+                     stroke="#241F2E" stroke-width="2.6" transform="rotate(-18 9.5 16.5)"/></svg>`;
+        d.style.left = `${r.left + 46 + i * 16}px`;
+        d.style.top = `${r.top + 6}px`;
+        gameEl.appendChild(d);
+        d.animate([{ transform: 'translate(0,0) rotate(-10deg)', opacity: 1 },
+                   { transform: `translate(${26 + i * 16}px, -78px) rotate(16deg)`, opacity: 0 }],
+                  { duration: 900, delay: i * 70, easing: 'ease-out' });
+        setTimeout(() => d.remove(), 1000 + i * 70);
+    }
+}
+function endMove() { world.move = null; world.moveT = 0; }
+
 function slideOn() {
     if (!world.running || world.sliding) return;
     // every swipe starts with a press, and that press already asked for a jump.
@@ -692,6 +803,7 @@ function slideOn() {
     }
     world.holding = false;
     world.sliding = true;
+    endMove();
     play('slide');
     if (world.y <= 0) dust();
 }
@@ -700,20 +812,25 @@ function slideOff() {
     hero.classList.remove('slide');
 }
 
-let touchY = null;
+let touchX = null, touchY = null;
 addEventListener('pointerdown', e => {
-    if (e.target.closest('.btn')) return;
-    touchY = e.clientY;
+    if (e.target.closest('.btn, #mute')) return;
+    touchX = e.clientX; touchY = e.clientY;
     jump();
 });
 addEventListener('pointermove', e => {
-    if (touchY !== null && e.clientY - touchY > 26) { slideOn(); touchY = null; }
+    if (touchY === null) return;
+    const dx = e.clientX - touchX, dy = e.clientY - touchY;
+    if (dy > 26 && dy > Math.abs(dx)) { slideOn(); touchX = touchY = null; }
+    else if (Math.abs(dx) > 34 && Math.abs(dx) > dy) { perform(dx > 0 ? 'sing' : 'dance'); touchX = touchY = null; }
 });
-addEventListener('pointerup', () => { touchY = null; world.holding = false; slideOff(); });
+addEventListener('pointerup', () => { touchX = touchY = null; world.holding = false; slideOff(); });
 addEventListener('keydown', e => {
     if (e.repeat) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); jump(); }
     if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); slideOn(); }
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); perform('sing'); }
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); perform('dance'); }
 });
 addEventListener('keyup', e => {
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') world.holding = false;
@@ -747,11 +864,17 @@ function frame(now) {
     const down = world.sliding && world.y <= 0;
     world.slideT = Math.max(0, Math.min(1, world.slideT + dt / (down ? SLIDE_IN : -SLIDE_OUT)));
     const s = world.slideT;
+    // the dance is a pirouette: a turn on the spot, about his own axis
+    const spin = world.move === 'dance' ? Math.cos(2 * Math.PI * (1 - world.moveT / MOVE_DUR)) : 1;
     hero.style.transform = `translateY(${-world.y}px)`
-        + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '');
+        + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '')
+        + (spin < 1 ? ` scaleX(${Math.sign(spin) * Math.max(.34, Math.abs(spin))})` : '');
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
+    if (world.moveT > 0 && (world.moveT = Math.max(0, world.moveT - dt)) === 0) endMove();
+
     const lost = hero.classList.contains('lost') ? ' lost' : '';
-    if (world.slideT > .5) hero.className = 'slide' + lost;
+    if (world.move) hero.className = world.move + lost;
+    else if (world.slideT > .5) hero.className = 'slide' + lost;
     else hero.className = (world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run')
                         + (world.jumps > 1 ? ' dbl' : '') + lost;
 
@@ -770,8 +893,17 @@ function frame(now) {
     const hb = heroBox();
     for (const t of world.things) {
         t.x -= px;
+        if (t.dead) { t.el.style.transform = `translateX(${t.x}px)`; continue; }
+        // a capybara cannot resist a performance, and comes over to watch
+        if (world.move && t.kind === 'capy') {
+            const gap = t.x - hero.offsetLeft;
+            if (gap > 0 && gap < MOVE_PULL) {
+                t.x -= gap * .07;
+                t.lift += (74 - t.lift) * .08;
+                t.el.style.bottom = `calc(24% + ${t.lift}px)`;
+            }
+        }
         t.el.style.transform = `translateX(${t.x}px)`;
-        if (t.dead) continue;
         const r = t.el.getBoundingClientRect();
         const hitsIt = r.left < hb.x + hb.w && r.right > hb.x && r.top < hb.y + hb.h && r.bottom > hb.y;
         if (!hitsIt) continue;
@@ -854,6 +986,7 @@ function begin() {
     Object.assign(world, {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
+    move: null, moveT: 0,
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
