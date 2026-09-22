@@ -314,6 +314,7 @@ body {
 }
 .card[hidden] { display: none; }
 .card .inner {
+    position: relative;
     width: 100%; max-width: 330px; padding: 20px;
     background: var(--panel); border: 3.5px solid var(--ink); border-radius: 22px;
     box-shadow: 8px 8px 0 var(--ink); text-align: center;
@@ -351,6 +352,39 @@ body {
 .bestline { font-family: var(--font-display); font-size: 25px; letter-spacing: .02em;
             color: var(--gold); margin: 10px 0 2px; }
 .bestline .ico { width: 17px; height: 17px; vertical-align: -3px; margin-right: 3px; }
+.beat { font-family: var(--font); font-size: 11.5px; font-weight: 900; letter-spacing: .04em;
+        opacity: .5; margin-top: -2px; display: none; }
+
+/* ============================================================
+   A RECORD IS WORTH A FUSS
+   ============================================================ */
+#ribbon {
+    display: none; position: absolute; top: -21px; left: 50%;
+    font-family: var(--font-display); font-size: 17px; letter-spacing: .08em; white-space: nowrap;
+    padding: 3px 16px 1px; transform: translateX(-50%) rotate(-3deg);
+    background: var(--danger); color: var(--panel);
+    border: 3px solid var(--ink); border-radius: 9px; box-shadow: var(--pop);
+    animation: ribbonIn .5s cubic-bezier(.2, 1.6, .4, 1) both;
+}
+@keyframes ribbonIn { from { transform: translateX(-50%) rotate(-3deg) scale(0); }
+                      to   { transform: translateX(-50%) rotate(-3deg) scale(1); } }
+#over-card.record #ribbon { display: block; }
+#over-card.record .beat { display: block; }
+#over-card.record .inner { border-color: var(--gold); }
+#over-card.record #over-title { color: var(--gold); animation: titlePop .6s ease-out both; }
+#over-card.record .bigscore span:last-child {
+    color: var(--gold); animation: scorePop .7s cubic-bezier(.2, 1.7, .4, 1) both;
+}
+#over-card.record .bestline { animation: shine 1.1s ease-in-out 2; }
+@keyframes titlePop { 0% { transform: scale(.7) rotate(-4deg); } 60% { transform: scale(1.12); }
+                      100% { transform: scale(1); } }
+@keyframes scorePop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes shine { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+.confetti {
+    position: absolute; z-index: 9; pointer-events: none; top: -30px;
+    width: 12px; height: 16px; border: 2.5px solid var(--ink); border-radius: 3px;
+}
 .bigscore span:first-child { display: block; font-family: var(--font); font-size: 13px;
                              font-weight: 900; letter-spacing: .05em; opacity: .66; }
 .bigscore span:last-child { display: block; font-family: var(--font-display); font-size: 62px;
@@ -567,11 +601,13 @@ body {
 
     <div class="card" id="over-card" hidden>
         <div class="inner">
+            <div id="ribbon">NEW RECORD</div>
             <h2 id="over-title">Ouch!</h2>
             <p id="over-line">A crate got in the way.</p>
             <div class="bigscore"><span><svg class="ico"><use href="#i-star"/></svg>Score</span><span id="over-score">0</span></div>
             <div class="sub" id="over-sub"></div>
             <div class="bestline"><svg class="ico"><use href="#i-cup"/></svg>Best <span id="over-best">0</span></div>
+            <div class="beat" id="over-beat"></div>
             <button class="btn" id="again">Again!</button>
         </div>
     </div>
@@ -580,7 +616,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v18';
+const APP_VERSION = 'v20';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -685,6 +721,13 @@ const SFX = {
     ride:  t => { [392, 523, 659, 784].forEach((f, i) =>
                       tone(t, { freq: f, dur: .32, type: 'triangle', vol: .2, at: i * .09 }));
                   hiss(t, { dur: .3, from: 1200, to: 500, vol: .12 }); },
+    fanfare: t => {
+        [523, 659, 784, 1046, 1318].forEach((f, i) =>
+            tone(t, { freq: f, dur: .4, type: 'triangle', vol: .22, at: i * .09 }));
+        [784, 1046, 1568].forEach(f =>
+            tone(t, { freq: f, dur: .9, type: 'square', vol: .11, at: .46 }));
+        hiss(t, { dur: .5, from: 3000, to: 700, vol: .14, at: .44 });
+    },
     save:  t => { [784, 1046, 1318].forEach((f, i) =>
                       tone(t, { freq: f, dur: .26, type: 'triangle', vol: .22, at: i * .08 }));
                   hiss(t, { dur: .2, from: 900, to: 300, vol: .14 }); },
@@ -804,7 +847,7 @@ const RIDE_FWD = -6;             // and sat back off its shoulders
 const RIDE_SPEED = 1.3;          // and how much faster the world goes by
 const RIDE_FIRST = 320, RIDE_EVERY = 620;   // metres to the first one, and between them
 const FUDGE_PTS = 175;           // he is worth a good chunk, and then a hit
-const FUDGE_FIRST = 240, FUDGE_EVERY = 520;
+const FUDGE_FIRST = 420, FUDGE_EVERY = 950;
 const SAFE_TIME = 1.2;           // how long he is untouchable after Fudge takes a hit
 const DISMOUNT_GRACE = 1.1;      // and how long he gets to find his feet after a ride
 const PER_METRE = 1;             // the base earner, so a long run still counts
@@ -925,7 +968,7 @@ function spawn() {
         return addThing('ride');
     }
     if (!world.carry && world.dist > world.fudgeAt) {
-        world.fudgeAt = world.dist + FUDGE_EVERY + Math.random() * 260;
+        world.fudgeAt = world.dist + FUDGE_EVERY + Math.random() * 420;
         return addThing('fudge');
     }
     const roll = Math.random();
@@ -1039,10 +1082,23 @@ function perform(kind) {
 const multEl = document.getElementById('mult');
 const scoreEl = document.getElementById('score');
 
+// awards that land together are added into the one number, so a herd of
+// capybaras reads as +150 rather than six labels flashing over each other
+let lastGain = null, lastGainAt = -1e9, lastGainSum = 0;
 function award(points, why) {
     const paid = Math.round(points * world.mult);
     world.score += paid;
-    gain(`+${fmt(paid)}${world.mult > 1 ? ` x${world.mult}` : ''}`, why);
+    const now = performance.now();
+    const tail = world.mult > 1 ? ` x${world.mult}` : '';
+    if (lastGain && lastGain.isConnected && now - lastGainAt < 280) {
+        lastGainSum += paid;
+        lastGain.textContent = `+${fmt(lastGainSum)}${tail}`;
+        lastGainAt = now;
+        return;
+    }
+    lastGainSum = paid;
+    lastGainAt = now;
+    lastGain = gain(`+${fmt(paid)}${tail}`, why);
 }
 // a move keeps the combo alive and pushes it one higher
 function combo() {
@@ -1057,13 +1113,17 @@ function gain(text, gold) {
     d.className = 'gain';
     d.textContent = text;
     d.style.color = gold ? 'var(--gold)' : 'var(--ink)';
-    d.style.left = `${r.left + r.width * .5 + (Math.random() * 40 - 20)}px`;
+    d.style.left = `${r.left + r.width * .5 + (Math.random() * 28 - 14)}px`;
     d.style.top = `${Math.max(120, gameEl.clientHeight * .3)}px`;
+    // centred from the first frame: without this it renders once with its left edge
+    // on the mark and then snaps sideways as the animation takes over
+    d.style.transform = 'translate(-50%, 0)';
     gameEl.appendChild(d);
     d.animate([{ transform: 'translate(-50%, 0)', opacity: 1 },
                { transform: 'translate(-50%, -58px)', opacity: 0 }],
-              { duration: 780, easing: 'ease-out' });
-    setTimeout(() => d.remove(), 800);
+              { duration: 780, easing: 'ease-out', fill: 'forwards' });
+    setTimeout(() => d.remove(), 820);
+    return d;
 }
 
 function notes(n) {
@@ -1318,6 +1378,35 @@ function saved() {
     setTimeout(() => d.remove(), 950);
 }
 
+// paper in the house colours, cut out in ink like everything else
+const CONFETTI = ['#f4b32c', '#2fa8e0', '#ef4444', '#9CC5E4', '#6b8f5a', '#fffdf8'];
+function confetti(n) {
+    for (let i = 0; i < n; i++) {
+        const d = document.createElement('div');
+        d.className = 'confetti';
+        d.style.background = CONFETTI[i % CONFETTI.length];
+        d.style.left = `${Math.random() * 100}%`;
+        if (i % 3 === 0) d.style.borderRadius = '50%';
+        gameEl.appendChild(d);
+        const drift = Math.random() * 180 - 90;
+        d.animate([{ transform: 'translate(0, 0) rotate(0)', opacity: 1 },
+                   { transform: `translate(${drift}px, ${gameEl.clientHeight + 60}px) rotate(${Math.random() * 900 - 450}deg)`,
+                     opacity: .9 }],
+                  { duration: 1800 + Math.random() * 1400, delay: Math.random() * 700, easing: 'cubic-bezier(.3,.6,.6,1)' });
+        setTimeout(() => d.remove(), 3600);
+    }
+}
+// the new record counts itself up, rather than just appearing
+function countUp(el, to, ms) {
+    const t0 = performance.now();
+    const step = now => {
+        const k = Math.min(1, (now - t0) / ms);
+        el.textContent = fmt(to * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+}
+
 function crash(kind) {
     if (world.safeT > 0) return;
     if (world.carry) return saved();
@@ -1349,19 +1438,32 @@ function crash(kind) {
     setTimeout(() => hat.remove(), 950);
 
     const score = Math.floor(world.score);
+    const record = score > best && best > 0, first = score > best && best === 0;
+    const beaten = best;
     if (score > best) {
         best = score;
         try { localStorage.setItem(bestKey, String(best)); } catch (e) { /* private mode */ }
     }
-    document.getElementById('over-title').textContent = score >= best && score > 0 ? 'Best yet!' : 'Ouch!';
+    const card = document.getElementById('over-card');
+    card.classList.toggle('record', record || first);
+    document.getElementById('over-title').textContent =
+        record ? 'Best yet!' : first ? 'First run!' : 'Ouch!';
     document.getElementById('over-line').textContent = KINDS[kind].line;
+    document.getElementById('over-beat').textContent = record ? `beat ${fmt(beaten)}` : '';
     document.getElementById('over-score').textContent = fmt(score);
     document.getElementById('over-sub').textContent =
         `${fmt(world.dist)} m · ${fmt(world.coins)} capybara${world.coins === 1 ? '' : 's'}`;
     document.getElementById('over-best').textContent = fmt(best);
     document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
-    setTimeout(() => { document.getElementById('over-card').hidden = false; }, 700);
+    setTimeout(() => {
+        card.hidden = false;
+        if (record || first) {
+            countUp(document.getElementById('over-score'), score, 900);
+            confetti(34);
+            play('fanfare');
+        }
+    }, 700);
 }
 
 function begin() {
