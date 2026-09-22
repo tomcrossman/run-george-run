@@ -198,7 +198,11 @@ body {
 .coin svg { animation: trot .6s ease-in-out infinite; }
 @keyframes trot { 0%, 100% { transform: translateY(0) rotate(-2deg); }
                   50%      { transform: translateY(-3px) rotate(2deg); } }
-.pop { animation: coinPop .35s ease-out forwards; }
+/* the rise goes on the artwork and the fade on the box: animating the box's own
+   transform interpolates away from its translateX, which streaks it off to the left
+   edge of the screen on the way out */
+.pop { animation: popFade .35s ease-out forwards; }
+.pop svg { animation: popRise .35s ease-out forwards; }
 /* the big one is a lift, not a hazard, and it says so in gold */
 .ride-tag {
     position: absolute; left: 50%; bottom: 100%; margin-bottom: 14px;
@@ -240,7 +244,9 @@ body {
 #ridebar.low i { background: var(--danger); }
 @keyframes lowPulse { from { transform: translateX(-50%) scale(1); }
                       to   { transform: translateX(-50%) scale(1.06); } }
-@keyframes coinPop { to { transform: translateY(-40px) scale(1.5); opacity: 0; } }
+@keyframes popFade { to { opacity: 0; } }
+@keyframes popRise { from { transform: translateY(0) scale(1); }
+                     to   { transform: translateY(-40px) scale(1.5); } }
 
 /* ============================================================
    SPEED, DUST AND IMPACT
@@ -638,7 +644,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v25';
+const APP_VERSION = 'v27';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -788,6 +794,7 @@ const MELODY = [                                 // the hook, one slot per eight
 let musicTimer = null, step = 0, nextAt = 0;
 function musicStep(n, t, d) {
     const bar = CHORDS[(n >> 3) % 4], beat = n % 8;
+    if (world.riding > 0) return rideStep(bar, beat, n, t, d);
     // kick on one and three, with a lift into every other bar
     if (beat === 0 || beat === 4 || (beat === 7 && (n >> 3) % 2 === 1)) kick(t);
     if (beat === 2 || beat === 6) snare(t);
@@ -801,6 +808,21 @@ function musicStep(n, t, d) {
     if (MELODY[n]) {
         mTone(t, NOTE(MELODY[n]), .17, 'square', .05, 3000);
         mTone(t, NOTE(MELODY[n]), .17, 'triangle', .035, 3000);
+    }
+}
+// up on the capybara the same four bars go large: four on the floor, hats at
+// double time, a sawtooth bass and the hook an octave up
+function rideStep(bar, beat, n, t, d) {
+    if (beat % 2 === 0) kick(t, .5);      // four on the floor
+    if (beat === 2 || beat === 6) snare(t, .24);
+    tick(t, beat % 2 ? .09 : .06);
+    tick(t + d / 2, .05);
+    mTone(t, NOTE(bar.root + BASS_FIG[beat] - 12), .15, 'sawtooth', .24, 640);
+    if (beat % 2 === 1)
+        bar.notes.forEach(m => mTone(t, NOTE(m + 12), .12, 'square', .042, 2800));
+    if (MELODY[n]) {
+        mTone(t, NOTE(MELODY[n] + 12), .16, 'square', .045, 3600);
+        mTone(t, NOTE(MELODY[n]), .2, 'triangle', .04, 2600);
     }
 }
 function mTone(t, freq, dur, type, vol, cut) {
@@ -844,7 +866,7 @@ function startMusic() {
     musicTimer = setInterval(() => {
         if (!audioCtx) return;
         // the bed speeds up with the run, so the pace is audible
-        const d = 60 / (150 + (world.speed - SPEED_MIN) * .09) / 2;
+        const d = 60 / ((150 + (world.speed - SPEED_MIN) * .09) * (world.riding > 0 ? 1.12 : 1)) / 2;
         while (nextAt < audioCtx.currentTime + .2) {
             musicStep(step, nextAt, d);
             nextAt += d;
@@ -1016,8 +1038,13 @@ function addThing(kind, ahead = 0, lift = null) {
     el.className = 'thing' + (isCapy ? ' coin' : '');
     el.innerHTML = k.html;
     el.style.bottom = `calc(24% + ${lift === null ? k.lift : lift}px)`;
+    // put it out to the right before it is in the document: an absolutely positioned
+    // element with no left of its own sits at the left edge, so without this it
+    // renders there for one frame and reads as a flash on the left of the screen
+    const x = gameEl.clientWidth + 40 + ahead;
+    el.style.transform = `translateX(${x}px)`;
     gameEl.appendChild(el);
-    world.things.push({ el, kind, x: gameEl.clientWidth + 40 + ahead, w: k.w, h: k.h,
+    world.things.push({ el, kind, x, w: k.w, h: k.h,
                        lift: lift === null ? k.lift : lift, dead: false });
 }
 
