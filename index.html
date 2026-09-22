@@ -201,6 +201,15 @@ body {
 #game.twins #hero.dance .leg-b { transform: rotate(14deg); }
 #game.twins #hero.jump .hero-hat, #game.twins #hero.fall .hero-hat,
 #game.twins #hero.jump.dbl .hero-hat, #game.twins #hero.fall.dbl .hero-hat { transform: none; }
+/* Arty's hood is no better fastened than George's hat: it flaps back off his
+   head on the way up, and further on the boost. It pivots where it meets his
+   shoulder, so the bottom stays put and the crown does the moving. */
+.hood { transform-box: fill-box; transform-origin: 46% 97%;
+        transition: transform .18s cubic-bezier(.3, 1.4, .5, 1); }
+#hero.jump .hood { transform: rotate(-6deg) translateY(1px); }
+#hero.fall .hood { transform: rotate(-3deg); }
+#hero.jump.dbl .hood { transform: rotate(-13deg) translateY(2px); }
+#hero.fall.dbl .hood { transform: rotate(-7deg) translateY(1px); }
 
 #hero.hurt { animation: hurt .5s steps(2) 3; }
 @keyframes hurt { 0% { opacity: 1; } 50% { opacity: .25; } 100% { opacity: 1; } }
@@ -684,7 +693,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v50';
+const APP_VERSION = 'v51';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1548,13 +1557,13 @@ const HERO_TWINS = `
                     <path d="M 19.4 15 C 15.5 16.5, 15 22, 17.5 25.5
                              C 17.4 20.5, 18.2 17, 19.4 15 Z"
                           fill="#5E3D23" stroke-width="2"/>
-                    <path d="M 41.5 10.5 C 34 5.5, 22 6.5, 17.5 15.5
+                    <g class="hood"><path d="M 41.5 10.5 C 34 5.5, 22 6.5, 17.5 15.5
                              C 13.5 23.5, 14.5 36, 19 45.5
                              L 28.5 45 C 24.5 39.5, 23.5 32, 25 25.5
                              C 27 18.5, 33 13, 41.5 10.5 Z"
                           fill="#4FB477" stroke-width="2.3"/>
                     <path d="M 38.5 12.5 C 30.5 15.5, 26.5 21, 26.5 28"
-                          fill="none" stroke="#388B5A" stroke-width="2.2" opacity=".75"/>
+                          fill="none" stroke="#388B5A" stroke-width="2.2" opacity=".75"/></g>
                     <g class="eye">
                         <ellipse cx="38.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
                         <circle cx="39.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
@@ -1696,16 +1705,16 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
           stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
     
     <path d="M 4.08 23.275
-                 C -0.23999999999999844 32.725, 1.379999999999999 44.2,
-                   5.969999999999999 48.925
-                 L 12.45 46.9
-                 C 8.4 39.475, 7.050000000000001 30.7,
+                 C 0.3000000000000007 32.05, 1.6499999999999986 39.07,
+                   5.4300000000000015 42.58
+                 L 11.91 40.825
+                 C 8.13 36.1, 7.050000000000001 30.7,
                    7.3199999999999985 23.95 Z"
               fill="#7A5230" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/><path d="M 28.92 23.275
-                 C 33.239999999999995 32.725, 31.62 44.2,
-                   27.03 48.925
-                 L 20.55 46.9
-                 C 24.6 39.475, 25.95 30.7,
+                 C 32.7 32.05, 31.35 39.07,
+                   27.57 42.58
+                 L 21.09 40.825
+                 C 24.869999999999997 36.1, 25.95 30.7,
                    25.68 23.95 Z"
               fill="#7A5230" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/>
     <circle cx="3.540000000000001" cy="29.62" r="3.105" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.7"/>
