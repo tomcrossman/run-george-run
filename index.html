@@ -546,11 +546,8 @@ body {
         <ellipse cx="7" cy="9" rx="4.7" ry="4"/>
     </symbol>
     <symbol id="i-robux" viewBox="0 0 14 14">
-        <path d="M 7 1.2 L 12.4 4.3 L 12.4 10.5 L 7 13.6 L 1.6 10.5 L 1.6 4.3 Z" fill="none"
-              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M 5.4 10.2 V 4.4 H 7.7 C 9.1 4.4, 9.6 5.4, 9.6 6.3 C 9.6 7.2, 9 7.9, 7.9 8 L 9.7 10.2"
-              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-              stroke-linejoin="round"/>
+        <path fill-rule="evenodd" d="M 12.7 5.27 Q 13.7 7.0 12.7 8.73 L 11.35 11.07 Q 10.35 12.8 8.35 12.8 L 5.65 12.8 Q 3.65 12.8 2.65 11.07 L 1.3 8.73 Q 0.3 7.0 1.3 5.27 L 2.65 2.93 Q 3.65 1.2 5.65 1.2 L 8.35 1.2 Q 10.35 1.2 11.35 2.93 Z M 11.35 5.7 Q 12.1 7.0 11.35 8.3 L 10.3 10.12 Q 9.55 11.42 8.05 11.42 L 5.95 11.42 Q 4.45 11.42 3.7 10.12 L 2.65 8.3 Q 1.9 7.0 2.65 5.7 L 3.7 3.88 Q 4.45 2.58 5.95 2.58 L 8.05 2.58 Q 9.55 2.58 10.3 3.88 Z"/>
+        <path fill-rule="evenodd" d="M 10.4 5.96 Q 11.0 7.0 10.4 8.04 L 9.6 9.42 Q 9.0 10.46 7.8 10.46 L 6.2 10.46 Q 5.0 10.46 4.4 9.42 L 3.6 8.04 Q 3.0 7.0 3.6 5.96 L 4.4 4.58 Q 5.0 3.54 6.2 3.54 L 7.8 3.54 Q 9.0 3.54 9.6 4.58 Z M 5.6 5.6 H 8.4 V 8.4 H 5.6 Z"/>
     </symbol>
     <symbol id="i-pad" viewBox="0 0 14 14">
         <path d="M 4.2 3.6 H 9.8 C 11.8 3.6, 13.2 5.6, 13.4 8 C 13.5 9.6, 12.8 10.6, 11.8 10.6
@@ -669,7 +666,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v48';
+const APP_VERSION = 'v49';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -809,52 +806,75 @@ function play(name) {
 
 /* a bright four-bar chase tune, scheduled a bar ahead like the Fingaz bed */
 const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
-// D - A - Bm - G, one bar each, eight eighth-notes to the bar
-const CHORDS = [
-    { root: 50, notes: [50, 54, 57] },
-    { root: 45, notes: [45, 49, 52] },
-    { root: 47, notes: [47, 50, 54] },
-    { root: 43, notes: [43, 47, 50] },
-];
-const BASS_FIG = [0, 0, 12, 0, 7, 0, 12, 7];     // semitones off the root, across the bar
-const MELODY = [                                 // the hook, one slot per eighth
-    78, 0, 81, 0, 83, 81, 78, 0,
-    76, 0, 78, 0, 81, 0, 78, 76,
-    78, 0, 81, 83, 86, 0, 83, 0,
-    81, 0, 78, 0, 76, 74, 76, 0,
-];
+// a tune is four bars, eight eighth-notes to the bar, and each cast runs to its own
+const TUNE_GEORGE = {
+    // D - A - Bm - G
+    chords: [
+        { root: 50, notes: [50, 54, 57] },
+        { root: 45, notes: [45, 49, 52] },
+        { root: 47, notes: [47, 50, 54] },
+        { root: 43, notes: [43, 47, 50] },
+    ],
+    bass: [0, 0, 12, 0, 7, 0, 12, 7],            // semitones off the root, across the bar
+    kicks: [0, 4],
+    melody: [                                    // the hook, one slot per eighth
+        78, 0, 81, 0, 83, 81, 78, 0,
+        76, 0, 78, 0, 81, 0, 78, 76,
+        78, 0, 81, 83, 86, 0, 83, 0,
+        81, 0, 78, 0, 76, 74, 76, 0,
+    ],
+};
+// brighter and bouncier for the boys: C - Am - F - G, a walking bass and an
+// extra kick on the and of two
+const TUNE_BOYS = {
+    chords: [
+        { root: 48, notes: [48, 52, 55] },
+        { root: 45, notes: [45, 48, 52] },
+        { root: 41, notes: [41, 45, 48] },
+        { root: 43, notes: [43, 47, 50] },
+    ],
+    bass: [0, 7, 0, 12, 0, 7, 12, 14],
+    kicks: [0, 3, 4],
+    melody: [
+        84, 0, 79, 0, 76, 79, 84, 0,
+        81, 0, 76, 0, 72, 0, 76, 81,
+        77, 0, 81, 0, 84, 0, 81, 77,
+        79, 0, 83, 0, 86, 84, 83, 79,
+    ],
+};
 let musicTimer = null, step = 0, nextAt = 0;
 function musicStep(n, t, d) {
-    const bar = CHORDS[(n >> 3) % 4], beat = n % 8;
+    const T = CAST.tune, bar = T.chords[(n >> 3) % 4], beat = n % 8;
     if (world.riding > 0) return rideStep(bar, beat, n, t, d);
-    // kick on one and three, with a lift into every other bar
-    if (beat === 0 || beat === 4 || (beat === 7 && (n >> 3) % 2 === 1)) kick(t);
+    // the tune's own kick pattern, with a lift into every other bar
+    if (T.kicks.includes(beat) || (beat === 7 && (n >> 3) % 2 === 1)) kick(t);
     if (beat === 2 || beat === 6) snare(t);
     tick(t, beat % 2 ? .085 : .05);
     // once he is really moving, the hats double up and the tune changes gear
     if (world.speed > 560) tick(t + d / 2, .05);
-    mTone(t, NOTE(bar.root + BASS_FIG[beat] - 12), .16, 'triangle', .3, 460);
+    mTone(t, NOTE(bar.root + T.bass[beat] - 12), .16, 'triangle', .3, 460);
     // an off-beat chord stab: the bit that makes it bounce
     if (beat % 2 === 1)
         bar.notes.forEach(m => mTone(t, NOTE(m + 12), .1, 'square', .034, 2200));
-    if (MELODY[n]) {
-        mTone(t, NOTE(MELODY[n]), .17, 'square', .05, 3000);
-        mTone(t, NOTE(MELODY[n]), .17, 'triangle', .035, 3000);
+    if (T.melody[n]) {
+        mTone(t, NOTE(T.melody[n]), .17, 'square', .05, 3000);
+        mTone(t, NOTE(T.melody[n]), .17, 'triangle', .035, 3000);
     }
 }
 // up on the capybara the same four bars go large: four on the floor, hats at
 // double time, a sawtooth bass and the hook an octave up
 function rideStep(bar, beat, n, t, d) {
+    const T = CAST.tune;
     if (beat % 2 === 0) kick(t, .5);      // four on the floor
     if (beat === 2 || beat === 6) snare(t, .24);
     tick(t, beat % 2 ? .09 : .06);
     tick(t + d / 2, .05);
-    mTone(t, NOTE(bar.root + BASS_FIG[beat] - 12), .15, 'sawtooth', .24, 640);
+    mTone(t, NOTE(bar.root + T.bass[beat] - 12), .15, 'sawtooth', .24, 640);
     if (beat % 2 === 1)
         bar.notes.forEach(m => mTone(t, NOTE(m + 12), .12, 'square', .042, 2800));
-    if (MELODY[n]) {
-        mTone(t, NOTE(MELODY[n] + 12), .16, 'square', .045, 3600);
-        mTone(t, NOTE(MELODY[n]), .2, 'triangle', .04, 2600);
+    if (T.melody[n]) {
+        mTone(t, NOTE(T.melody[n] + 12), .16, 'square', .045, 3600);
+        mTone(t, NOTE(T.melody[n]), .2, 'triangle', .04, 2600);
     }
 }
 function mTone(t, freq, dur, type, vol, cut) {
@@ -902,7 +922,7 @@ function startMusic() {
         while (nextAt < audioCtx.currentTime + .2) {
             musicStep(step, nextAt, d);
             nextAt += d;
-            step = (step + 1) % MELODY.length;
+            step = (step + 1) % CAST.tune.melody.length;
         }
     }, 40);
 }
@@ -1080,14 +1100,11 @@ const BIG_CAPY = CAPY.replace('width="36" height="27"', 'width="150" height="112
 /* ---- the other cast: Henry and Arty, Nora, and what they chase -------- */
 // a Robux-style coin — the gold hex and an R, drawn in the house hand
 const ROBUX = `<svg width="34" height="34" viewBox="0 0 34 34">
-    <g stroke="#241F2E" stroke-width="2.4" stroke-linejoin="round">
-        <path d="M 17 2 L 30 9 L 30 25 L 17 32 L 4 25 L 4 9 Z" fill="#F4B32C"/>
-        <path d="M 17 6 L 26.5 11.2 L 26.5 22.8 L 17 28 L 7.5 22.8 L 7.5 11.2 Z"
-              fill="#FFD75E" stroke-width="1.6"/>
-        <path d="M 13 23 L 13 11 L 18.5 11 C 21.5 11, 22.5 13, 22.5 14.8
-                 C 22.5 16.6, 21.4 18, 19.4 18.4 L 22.8 23"
-              fill="none" stroke="#241F2E" stroke-width="2.6" stroke-linecap="round"/>
-    </g></svg>`;
+    <path d="M 30.65 12.93 Q 33.0 17.0 30.65 21.07 L 27.35 26.79 Q 25.0 30.86 20.3 30.86 L 13.7 30.86 Q 9.0 30.86 6.65 26.79 L 3.35 21.07 Q 1.0 17.0 3.35 12.93 L 6.65 7.21 Q 9.0 3.14 13.7 3.14 L 20.3 3.14 Q 25.0 3.14 27.35 7.21 Z" fill="#241F2E"/>
+    <path d="M 29.15 13.45 Q 31.2 17.0 29.15 20.55 L 26.15 25.75 Q 24.1 29.3 20.0 29.3 L 14.0 29.3 Q 9.9 29.3 7.85 25.75 L 4.85 20.55 Q 2.8 17.0 4.85 13.45 L 7.85 8.25 Q 9.9 4.7 14.0 4.7 L 20.0 4.7 Q 24.1 4.7 26.15 8.25 Z" fill="#F4B32C"/>
+    <path d="M 26.25 14.32 Q 27.8 17.0 26.25 19.68 L 23.95 23.67 Q 22.4 26.35 19.3 26.35 L 14.7 26.35 Q 11.6 26.35 10.05 23.67 L 7.75 19.68 Q 6.2 17.0 7.75 14.32 L 10.05 10.33 Q 11.6 7.65 14.7 7.65 L 19.3 7.65 Q 22.4 7.65 23.95 10.33 Z" fill="#FFFDF8"/>
+    <path d="M 24.55 14.83 Q 25.8 17.0 24.55 19.17 L 22.65 22.46 Q 21.4 24.62 18.9 24.62 L 15.1 24.62 Q 12.6 24.62 11.35 22.46 L 9.45 19.17 Q 8.2 17.0 9.45 14.83 L 11.35 11.54 Q 12.6 9.38 15.1 9.38 L 18.9 9.38 Q 21.4 9.38 22.65 11.54 Z" fill="#DE9E2A"/>
+    <rect x="13.7" y="13.7" width="6.6" height="6.6" rx="1" fill="#FFFDF8"/></svg>`;
 // Nora, small enough to be carried and brave enough to take a hit
 const NORA = `<svg width="42" height="50" viewBox="0 0 44 52"><g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
         <path d="M 13 33 L 10 45" stroke="#E98CA8" stroke-width="7"/>
@@ -1424,46 +1441,54 @@ const HERO_GEORGE = `
 const HERO_TWINS = `
             <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
                 <g class="hifive">
-                    <path d="M 58 48 C 55.5 36, 54 18, 53.8 6" fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 58 48 C 55.5 36, 54 18, 53.8 6" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <path d="M 34 48 C 35.5 36, 39 18, 42.4 6" fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 34 48 C 35.5 36, 39 18, 42.4 6" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <circle cx="54.2" cy="3.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
-                    <circle cx="42" cy="3.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
-                    <path d="M 48.2 5 L 48.2 -3 M 43 -3 L 40 -7 M 53.4 -3 L 56.4 -7
-                             M 38.5 1 L 33.5 -.5 M 57.9 1 L 62.9 -.5"
+                    <path d="M 57.64 52.92 C 55.14 40.92, 53.64 22.92, 48.6 14"
+                          fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 57.64 52.92 C 55.14 40.92, 53.64 22.92, 48.6 14"
+                          fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <path d="M 34.1 56.61 C 35.6 44.61, 39.1 26.61, 37.4 14"
+                          fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 34.1 56.61 C 35.6 44.61, 39.1 26.61, 37.4 14"
+                          fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="49" cy="11.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <circle cx="37" cy="11.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <path d="M 43 13 L 43 5.5 M 37.8 5 L 34.8 1 M 48.2 5 L 51.2 1
+                             M 33.3 9 L 28.3 7.5 M 52.7 9 L 57.7 7.5"
                           fill="none" stroke="#F4B32C" stroke-width="2.8" stroke-linecap="round"/>
                 </g>
-                
+                <g transform="translate(5.46 13.65) scale(0.895)">
                 <g class="leg-b" opacity=".8">
-                    <path d="M 27 82 L 28 116" stroke="#FFDCC0" stroke-width="10.5"/>
-                    <path d="M 27 78 L 27.6 94" stroke="#39415A" stroke-width="12.5"/>
-                    <rect x="22.5" y="116" width="15" height="10" rx="4"
+                    <path d="M 25 82 L 26 116" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <path d="M 25 78 L 25.2 112" stroke="#39415A" stroke-width="11.5"/>
+                    <rect x="20.5" y="116" width="15" height="10" rx="4"
                           fill="#E8524F" stroke-width="2.2"/>
-                    <rect x="21.5" y="123" width="17" height="6" rx="3"
+                    <rect x="19.5" y="123" width="17" height="6" rx="3"
                           fill="#F4F6FA" stroke-width="2.2"/>
                 </g>
-                <g class="arm-up-b" opacity=".8" style="transform-origin:30px 48px">
-                    <path d="M 30 48 C 20.759999999999998 42, 16.36 33, 8 22" fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 30 48 C 20.759999999999998 42, 16.36 33, 8 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <circle cx="8" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
+                <g class="arm-up-b" opacity=".8" style="transform-origin:28px 48px">
+                    <path d="M 28 48 C 18.759999999999998 42, 14.36 33, 6 22" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 28 48 C 18.759999999999998 42, 14.36 33, 6 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="6" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
                 </g>
-                <g class="arm-b" opacity=".8" style="transform-origin:30px 48px">
-                    <path d="M 30 45 L 28.8 54" fill="none" stroke="#388B5A" stroke-width="10.5"/>
-                    <path d="M 30 48 L 28 59 L 37.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
+                <g class="arm-b" opacity=".8" style="transform-origin:28px 48px">
+                    <path d="M 28 48 L 26 59 L 35.5 60.5" fill="none" stroke="#388B5A" stroke-width="9.6" stroke-linejoin="round"/>
+                    <path d="M 31.0 60.6 L 35.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
                           stroke-linejoin="round"/>
-                    <circle cx="37.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
+                    <circle cx="35.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
                     
                 </g>
 
-                <g class="buddy" transform="translate(-4 28) scale(.66)"><g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-        <path d="M 13 33 L 10 45" stroke="#E98CA8" stroke-width="7"/>
-        <path d="M 31 33 L 34 45" stroke="#E98CA8" stroke-width="7"/>
+                <g class="buddy" transform="translate(-12 32) scale(.66)"><g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 13 33 L 10 45" stroke="#5E6B8C" stroke-width="7"/>
+        <path d="M 31 33 L 34 45" stroke="#5E6B8C" stroke-width="7"/>
         <ellipse cx="9" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
         <ellipse cx="35" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
-        <path d="M 12 42 C 9 34, 10 26, 14 24 L 30 24 C 34 26, 35 34, 32 42 Z" fill="#FBEFD8"/>
+        <path d="M 12 42 C 9 34, 10 26, 14 24 L 30 24 C 34 26, 35 34, 32 42 Z" fill="#F29CB8"/>
         <path d="M 12.5 28 L 6 36" stroke="#FFDCC0" stroke-width="6"/>
         <path d="M 31.5 28 L 38 36" stroke="#FFDCC0" stroke-width="6"/>
+        <path d="M 10.4 11 C 5.8 17, 5 28, 7.6 35 C 11 35.4, 13.6 33, 13 28
+                 C 11.4 22, 10.2 16, 11 11 Z" fill="#8A5E38"/>
+        <path d="M 33.6 11 C 38.2 17, 39 28, 36.4 35 C 33 35.4, 30.4 33, 31 28
+                 C 32.6 22, 33.8 16, 33 11 Z" fill="#8A5E38"/>
         <circle cx="22" cy="14.5" r="12.5" fill="#FFDCC0"/>
         <path d="M 22 2 C 27 2, 28.5 7, 26.5 9.5 C 24.5 7.5, 19.5 7.5, 17.5 9.5
                  C 15.5 7, 17 2, 22 2 Z" fill="#8A5E38"/>
@@ -1477,64 +1502,76 @@ const HERO_TWINS = `
         <ellipse cx="12.5" cy="19" rx="2.8" ry="1.8" fill="#F08C7A" opacity=".5" stroke="none"/>
         <ellipse cx="31.5" cy="19" rx="2.8" ry="1.8" fill="#F08C7A" opacity=".5" stroke="none"/>
     </g></g>
-                <g class="torso" transform="rotate(-5 29 70)">
-                    <path d="M 22 67 L 38 67 L 36.5 86 L 23 86 Z"
+                <g class="torso" transform="rotate(-5 27 70)">
+                    <path d="M 20 67 L 36 67 L 34.5 86 L 21 86 Z"
                           fill="#39415A" stroke-width="2.4"/>
-                    <path d="M 22.5 42 C 21.5 36.5, 38.5 36.5, 37.5 42
-                             L 38.5 70 L 21.5 70 Z" fill="#4FB477" stroke-width="2.4"/>
-                    <path d="M 25 45 L 26 68" stroke="#388B5A" stroke-width="3.6"
+                    <path d="M 20.5 42 C 19.5 36.5, 36.5 36.5, 35.5 42
+                             L 36.5 70 L 19.5 70 Z" fill="#4FB477" stroke-width="2.4"/>
+                    <path d="M 23 45 L 24 68" stroke="#388B5A" stroke-width="3.6"
                           opacity=".55"/>
-                    <circle cx="34" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
-                    <path d="M 21 27.5 C 19.5 13.5, 28 10.5, 34.5 11.2
-                             C 43 12, 47.4 17.5, 46.6 26
-                             C 44.5 20.5, 39.5 18.2, 34.5 18.8
-                             C 28.5 19.5, 23.5 22.5, 21 27.5 Z"
+                    <path d="M 21 56 C 24 61, 31 61.5, 35.5 59"
+                              fill="none" stroke="#388B5A" stroke-width="2" opacity=".8"/>
+                    <path d="M 30 43 L 29.5 49 M 33 43 L 33.5 49"
+                          fill="none" stroke="#FFFDF8" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M 21 21 C 13 26, 11.5 38, 16 46
+                             C 21.5 48, 26.5 45.5, 26 41
+                             C 22.5 35, 20.5 28, 21 22 Z"
+                          fill="#4FB477" stroke-width="2.3"/>
+                    <path d="M 22.5 18 C 16.5 24, 16 35, 18.5 42
+                             C 23 43.5, 27 41, 26 35.5
+                             C 24 30, 22.5 24, 23 19 Z"
                           fill="#7A5230" stroke-width="2.2"/>
-                    <path d="M 21.4 15 C 17.5 16.5, 17 22, 19.5 25.5
-                             C 19.4 20.5, 20.2 17, 21.4 15 Z"
+                    <circle cx="32" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 19 27.5 C 17.5 13.5, 26 10.5, 32.5 11.2
+                             C 41 12, 45.4 17.5, 44.6 26
+                             C 42.5 20.5, 37.5 18.2, 32.5 18.8
+                             C 26.5 19.5, 21.5 22.5, 19 27.5 Z"
+                          fill="#7A5230" stroke-width="2.2"/>
+                    <path d="M 19.4 15 C 15.5 16.5, 15 22, 17.5 25.5
+                             C 17.4 20.5, 18.2 17, 19.4 15 Z"
                           fill="#5E3D23" stroke-width="2"/>
                     <g class="eye">
-                        <ellipse cx="40.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
-                        <circle cx="41.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
-                        <circle cx="41.7" cy="25.4" r=".55" fill="#fff" stroke="none"/>
+                        <ellipse cx="38.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
+                        <circle cx="39.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
+                        <circle cx="39.7" cy="25.4" r=".55" fill="#fff" stroke="none"/>
                     </g>
                     <g class="eye-x">
-                        <path d="M 37.7 23.2 l 5.4 5.4 M 43.1 23.2 l -5.4 5.4"
+                        <path d="M 35.7 23.2 l 5.4 5.4 M 41.1 23.2 l -5.4 5.4"
                               stroke="#241F2E" stroke-width="2" stroke-linecap="round"/>
                     </g>
-                    <path d="M 37.6 33.4 q 3.4 2.6 6 -.4" fill="none" stroke-width="1.9"/>
-                    <ellipse cx="32" cy="32.5" rx="3" ry="1.8" fill="#F08C7A" opacity=".45"
+                    <path d="M 35.6 33.4 q 3.4 2.6 6 -.4" fill="none" stroke-width="1.9"/>
+                    <ellipse cx="30" cy="32.5" rx="3" ry="1.8" fill="#F08C7A" opacity=".45"
                              stroke="none"/>
                     
                 </g>
 
-                <g class="arm-up-a" style="transform-origin:34px 48px">
-                    <path d="M 34 48 C 42.82 42, 47.019999999999996 33, 55 22" fill="none" stroke="#241F2E" stroke-width="11"/>
-                    <path d="M 34 48 C 42.82 42, 47.019999999999996 33, 55 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
-                    <circle cx="55" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
+                <g class="arm-up-a" style="transform-origin:32px 48px">
+                    <path d="M 32 48 C 40.82 42, 45.019999999999996 33, 53 22" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 32 48 C 40.82 42, 45.019999999999996 33, 53 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="53" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
                 </g>
-                <g class="arm-a" style="transform-origin:34px 48px">
-                    <path d="M 34 45 L 32.8 54" fill="none" stroke="#388B5A" stroke-width="10.5"/>
-                    <path d="M 34 48 L 32 59 L 43.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
+                <g class="arm-a" style="transform-origin:32px 48px">
+                    <path d="M 32 48 L 30 59 L 41.5 60.5" fill="none" stroke="#388B5A" stroke-width="9.6" stroke-linejoin="round"/>
+                    <path d="M 37.0 60.6 L 41.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
                           stroke-linejoin="round"/>
-                    <circle cx="43.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
+                    <circle cx="41.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
                     <g class="mic" transform="translate(-1.4 2.6)">
-                        <path d="M 38.4 62.4 L 43 63.6" stroke="#241F2E" stroke-width="3.4"/>
-                        <rect x="40" y="59.2" width="9.4" height="9.4" rx="4.7"
+                        <path d="M 36.4 62.4 L 41 63.6" stroke="#241F2E" stroke-width="3.4"/>
+                        <rect x="38" y="59.2" width="9.4" height="9.4" rx="4.7"
                               fill="#3C4254" stroke-width="2.2"/>
-                        <path d="M 42.5 61.8 L 47 61.8 M 42.5 66.2 L 47 66.2"
+                        <path d="M 40.5 61.8 L 45 61.8 M 40.5 66.2 L 45 66.2"
                               stroke="#8B94AC" stroke-width="1.4"/>
                     </g>
                 </g>
                 <g class="leg-a">
-                    <path d="M 31 82 L 34 116" stroke="#FFDCC0" stroke-width="10.5"/>
-                    <path d="M 31 78 L 31.6 94" stroke="#39415A" stroke-width="12.5"/>
-                    <rect x="28.5" y="116" width="15" height="10" rx="4"
+                    <path d="M 29 82 L 32 116" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <path d="M 29 78 L 31.2 112" stroke="#39415A" stroke-width="11.5"/>
+                    <rect x="26.5" y="116" width="15" height="10" rx="4"
                           fill="#E8524F" stroke-width="2.2"/>
-                    <rect x="27.5" y="123" width="17" height="6" rx="3"
+                    <rect x="25.5" y="123" width="17" height="6" rx="3"
                           fill="#F4F6FA" stroke-width="2.2"/>
-                </g>
-                
+                </g></g>
+                <g transform="translate(3.12 7.8) scale(0.94)">
                 <g class="leg-b" opacity=".8">
                     <path d="M 51 82 L 52 116" stroke="#FFDCC0" stroke-width="10.5"/>
                     <path d="M 51 78 L 51.6 94" stroke="#39415A" stroke-width="12.5"/>
@@ -1549,7 +1586,7 @@ const HERO_TWINS = `
                     <circle cx="32" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
                 </g>
                 <g class="arm-b" opacity=".8" style="transform-origin:54px 48px">
-                    <path d="M 54 45 L 52.8 54" fill="none" stroke="#1C82B4" stroke-width="10.5"/>
+                    <path d="M 54 45 L 52.8 54" fill="none" stroke="#CE6A1E" stroke-width="10.5"/>
                     <path d="M 54 48 L 52 59 L 61.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
                           stroke-linejoin="round"/>
                     <circle cx="61.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
@@ -1560,18 +1597,21 @@ const HERO_TWINS = `
                     <path d="M 46 67 L 62 67 L 60.5 86 L 47 86 Z"
                           fill="#39415A" stroke-width="2.4"/>
                     <path d="M 46.5 42 C 45.5 36.5, 62.5 36.5, 61.5 42
-                             L 62.5 70 L 45.5 70 Z" fill="#2FA8E0" stroke-width="2.4"/>
-                    <path d="M 49 45 L 50 68" stroke="#1C82B4" stroke-width="3.6"
+                             L 62.5 70 L 45.5 70 Z" fill="#F58A34" stroke-width="2.4"/>
+                    <path d="M 49 45 L 50 68" stroke="#CE6A1E" stroke-width="3.6"
                           opacity=".55"/>
+                    
+                    
+                    
                     <circle cx="58" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
                     <path d="M 45 27.5 C 43.5 13.5, 52 10.5, 58.5 11.2
                              C 67 12, 71.4 17.5, 70.6 26
                              C 68.5 20.5, 63.5 18.2, 58.5 18.8
                              C 52.5 19.5, 47.5 22.5, 45 27.5 Z"
-                          fill="#7A5230" stroke-width="2.2"/>
+                          fill="#DCB25E" stroke-width="2.2"/>
                     <path d="M 45.4 15 C 41.5 16.5, 41 22, 43.5 25.5
                              C 43.4 20.5, 44.2 17, 45.4 15 Z"
-                          fill="#5E3D23" stroke-width="2"/>
+                          fill="#BC9138" stroke-width="2"/>
                     <g class="eye">
                         <ellipse cx="64.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
                         <circle cx="65.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
@@ -1600,7 +1640,7 @@ const HERO_TWINS = `
                     <circle cx="79" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
                 </g>
                 <g class="arm-a" style="transform-origin:58px 48px">
-                    <path d="M 58 45 L 56.8 54" fill="none" stroke="#1C82B4" stroke-width="10.5"/>
+                    <path d="M 58 45 L 56.8 54" fill="none" stroke="#CE6A1E" stroke-width="10.5"/>
                     <path d="M 58 48 L 56 59 L 67.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
                           stroke-linejoin="round"/>
                     <circle cx="67.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
@@ -1619,7 +1659,7 @@ const HERO_TWINS = `
                           fill="#E8524F" stroke-width="2.2"/>
                     <rect x="51.5" y="123" width="17" height="6" rx="3"
                           fill="#F4F6FA" stroke-width="2.2"/>
-                </g>
+                </g></g>
             </g>
 `;
 
@@ -1627,6 +1667,19 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
     <path d="M -4 64 C -2 53, 6 47, 16.5 47 C 27 47, 34 53, 35.5 64 Z" fill="#4FB477"
           stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
     
+    <path d="M 4.08 23.275
+                 C -0.23999999999999844 32.725, 1.379999999999999 44.2,
+                   5.969999999999999 48.925
+                 L 12.45 46.9
+                 C 8.4 39.475, 7.050000000000001 30.7,
+                   7.3199999999999985 23.95 Z"
+              fill="#7A5230" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/><path d="M 28.92 23.275
+                 C 33.239999999999995 32.725, 31.62 44.2,
+                   27.03 48.925
+                 L 20.55 46.9
+                 C 24.6 39.475, 25.95 30.7,
+                   25.68 23.95 Z"
+              fill="#7A5230" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/>
     <circle cx="3.540000000000001" cy="29.62" r="3.105" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.7"/>
     <circle cx="16.5" cy="28" r="13.5" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8"/>
     <path d="M 3.0 26.65 C 1.9199999999999982 13.149999999999999, 9.75 8.830000000000002,
@@ -1656,8 +1709,9 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
                  14.7 40.6 C 14.3 39.2, 14.5 37.2,
                  14.9 36 Z" fill="#E8697F" stroke="#241F2E" stroke-width="1.4"/></g>
 
-    <path d="M 25 64 C 26 50.5, 35 44, 45 44 C 56 44, 64.5 50.5, 66 64 Z" fill="#2FA8E0"
+    <path d="M 25 64 C 26 50.5, 35 44, 45 44 C 56 44, 64.5 50.5, 66 64 Z" fill="#F58A34"
           stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+    
     
     <circle cx="59.4" cy="26.8" r="3.45" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.7"/>
     <circle cx="45" cy="25" r="15" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8"/>
@@ -1665,10 +1719,10 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
              45 4.0 C 52.5 4.300000000000001, 61.2 8.5,
              60 23.5 C 57.3 15.7, 51.3 13.299999999999999,
              45.6 15.1 C 39.0 17.2, 33.9 16.9,
-             30 23.5 Z" fill="#7A5230" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+             30 23.5 Z" fill="#DCB25E" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
     <path d="M 30.3 20.5 C 28.2 12.700000000000001, 32.1 7.900000000000002,
              37.5 6.100000000000001 C 33.0 11.2, 30.9 16.0,
-             30.3 20.5 Z" fill="#5E3D23" stroke="#241F2E" stroke-width="1.5"/>
+             30.3 20.5 Z" fill="#BC9138" stroke="#241F2E" stroke-width="1.5"/>
     <ellipse cx="34.2" cy="31.3" rx="3.0" ry="1.7999999999999998" fill="#F08C7A" opacity=".45"/>
     <ellipse cx="55.8" cy="31.3" rx="3.0" ry="1.7999999999999998" fill="#F08C7A" opacity=".45"/>
     <g>
@@ -1714,6 +1768,7 @@ const CASTS = {
         portrait: PORTRAIT_GEORGE,
         spin: true,                      // the dance is a pirouette
         boost: 'blade boost, mid-air',
+        tune: TUNE_GEORGE,
         coin: { html: CAPY, w: 36, h: 27, icon: 'i-capy', noun: 'capybara', many: 'capybaras' },
         ride: {
             html: BIG_CAPY, mount: CAPY.replace('width="36" height="27"', 'width="150" height="112"'),
@@ -1737,12 +1792,13 @@ const CASTS = {
     twins: {
         pick: 'Henry &amp; Arty',
         alt: 'Henry and Arty, running together',
-        title: 'Run Henry,<br>Run Arty',
+        title: 'Run Boys,<br>Run',
         tag: 'Two brothers, one sister, no brakes.',
         hero: HERO_TWINS,
         portrait: PORTRAIT_TWINS,
         spin: false,                     // they hi-five instead
         boost: 'double jump, mid-air',
+        tune: TUNE_BOYS,
         coin: { html: ROBUX, w: 34, h: 34, icon: 'i-robux', noun: 'robux', many: 'robux' },
         ride: {
             html: BIG_PAD, mount: PAD, warn: PAD_MINI,
