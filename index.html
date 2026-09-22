@@ -379,6 +379,11 @@ body {
 /* the tagline sits in the same gap above and below, between the faces it
    describes and the controls for them */
 #tagline { margin: 12px 0; }
+/* a quiet heading over a block inside a card */
+.lead {
+    margin: 14px 0 0; font-size: 10px; font-weight: 900; letter-spacing: .06em;
+    text-transform: uppercase; opacity: .5;
+}
 .card .keys {
     margin-top: 0; display: grid; grid-template-columns: max-content 1fr;
     gap: 7px 9px; align-items: center; text-align: left;
@@ -652,14 +657,7 @@ body {
             <h1>Run Boys, Run</h1>
             <div class="casts big" id="pick-start"></div>
             <p id="tagline">Two blades, one hat, no brakes.</p>
-            <div class="keys">
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump, or flick up</span></div>
-                <div class="row" id="row-boost"></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide, or dive down</span></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime, and a combo</span></div>
-                <div class="row" id="row-ride"></div>
-                <div class="row" id="row-buddy"></div>
-            </div>
+            <div class="keys" id="keys-start"></div>
             <button class="btn" id="go">Run!</button>
         </div>
     </div>
@@ -686,6 +684,8 @@ body {
             <h2>Who&rsquo;s running?</h2>
             <p id="set-note">Swap the cast, the collectibles and the moves.</p>
             <div class="casts" id="pick-set"></div>
+            <p class="lead">How to play</p>
+            <div class="keys" id="keys-set"></div>
             <button class="btn" id="close-set">Done</button>
         </div>
     </div>
@@ -694,7 +694,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v58';
+const APP_VERSION = 'v59';
 document.getElementById('version').textContent = `Run Boys, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1879,16 +1879,23 @@ const CASTS = {
 
 const heroSvg = hero.querySelector('svg');
 const barIcon = rideBar.querySelector('.ico');
-const rowRide = document.getElementById('row-ride');
-const rowBuddy = document.getElementById('row-buddy');
-const rowBoost = document.getElementById('row-boost');
 const setCard = document.getElementById('set-card');
 // the game opens as George every time: the pick lasts for this visit, not for good
 let castId = 'george', CAST = CASTS.george;
 
 const helpRow = (icon, key, what) =>
-    `<span class="key"><svg class="ico"><use href="#${icon}"/></svg>${key}</span>` +
-    `<span class="what">${what}</span>`;
+    `<div class="row"><span class="key"><svg class="ico"><use href="#${icon}"/></svg>${key}</span>` +
+    `<span class="what">${what}</span></div>`;
+// the same six rows on the start card and behind the switcher, so the controls
+// are still there to check once a run is under way
+const keysHTML = () => [
+    ['i-tap', 'Tap', 'jump, or flick up'],
+    ['i-boost', 'Tap again', CAST.boost],
+    ['i-down', 'Swipe down', 'slide, or dive down'],
+    ['i-across', 'Swipe across', 'showtime, and a combo'],
+    [CAST.ride.icon, CAST.ride.key, CAST.ride.help],
+    [CAST.buddy.icon, CAST.buddy.key, CAST.buddy.help],
+].map(r => helpRow(...r)).join('');
 
 function applyCast(id) {
     if (!CASTS[id]) id = 'george';
@@ -1899,9 +1906,8 @@ function applyCast(id) {
     mountEl.innerHTML = CAST.mount || CAST.ride.mount;
     document.querySelectorAll('.portrait').forEach(el => { el.innerHTML = CAST.portrait; });
     document.getElementById('tagline').textContent = CAST.tag;
-    rowBoost.innerHTML = helpRow('i-boost', 'Tap again', CAST.boost);
-    rowRide.innerHTML = helpRow(CAST.ride.icon, CAST.ride.key, CAST.ride.help);
-    rowBuddy.innerHTML = helpRow(CAST.buddy.icon, CAST.buddy.key, CAST.buddy.help);
+    document.getElementById('keys-start').innerHTML = keysHTML();
+    document.getElementById('keys-set').innerHTML = keysHTML();
     barIcon.innerHTML = `<use href="#${CAST.ride.icon}"/>`;
     document.querySelectorAll('.cast').forEach(b => b.classList.toggle('on', b.dataset.cast === id));
     // anything already on its way keeps up with the change
