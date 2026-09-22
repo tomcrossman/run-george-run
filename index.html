@@ -129,15 +129,15 @@ body {
 /* showtime: a note held into the microphone, and a spin (the spin itself is in the loop) */
 #hero.sing .arm-a { transform: rotate(-98deg); }
 #hero.sing .arm-b { display: none; }
-#hero.sing #arm-up-b { display: block; animation: waveB .5s ease-in-out infinite alternate; }
+#hero.sing .arm-up-b { display: block; animation: waveB .5s ease-in-out infinite alternate; }
 @keyframes waveB { from { transform: rotate(-7deg); } to { transform: rotate(9deg); } }
 #hero.sing .leg-a { transform: rotate(-22deg); }
 #hero.sing .leg-b { transform: rotate(26deg); }
 /* chest open and chin up, holding the note — tipping the torso forward instead
    left the head down over the microphone and read as a hunch */
 #hero.sing .torso { transform: rotate(-7deg); }
-#mic { display: none; }
-#hero.sing #mic { display: block; }
+.mic { display: none; }
+#hero.sing .mic { display: block; }
 #hero.dance .arm-a { transform: rotate(-58deg); }
 #hero.dance .arm-b { transform: rotate(62deg); }
 #hero.dance .leg-a { transform: rotate(-30deg); }
@@ -148,7 +148,7 @@ body {
 #hero.ride.sing .arm-b { transform: rotate(38deg); }
 #hero.ride.sing .torso { transform: rotate(4deg); }
 #hero.ride.dance .arm-a, #hero.ride.dance .arm-b { display: none; }
-#hero.ride.dance #arm-up-a, #hero.ride.dance #arm-up-b {
+#hero.ride.dance .arm-up-a, #hero.ride.dance .arm-up-b {
     display: block; animation: roof .24s ease-in-out infinite alternate;
 }
 #hero.ride.dance .torso { transform: rotate(-5deg); }
@@ -167,28 +167,38 @@ body {
 #hero.ride .torso { transform: rotate(-4deg); }
 
 /* knocked out, the way a knocked-out hand looks in Fingaz */
-#buddy { display: none; }
+.buddy { display: none; }
 /* the far arm is drawn behind the torso and the near one in front, so a raised
    arm passes behind his head rather than across it */
-#arm-up-a, #arm-up-b { display: none; transform-box: view-box; transform-origin: 56px 50px; }
-#hero.carry #buddy, #hero.ride.carry #buddy, #hero.slide.carry #buddy { display: block; }
+.arm-up-a, .arm-up-b { display: none; transform-box: view-box; transform-origin: 56px 50px; }
+#hero.carry .buddy, #hero.ride.carry .buddy, #hero.slide.carry .buddy { display: block; }
 /* while Fudge is taking the knock for him, he cannot be hit again */
 #hero.safe { animation: blink .2s steps(2) infinite; }
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: .45; } 100% { opacity: 1; } }
 
-#eye-x { display: none; }
-#hero.hurt #eye-x { display: block; }
+.eye-x { display: none; }
+#hero.hurt .eye-x { display: block; }
 #hero.hurt .eye { display: none; }
 
 /* the hat is only loosely attached — it lifts on the way up, further on the boost */
-#hero-hat { transform-box: fill-box; transform-origin: 50% 100%;
+.hero-hat { transform-box: fill-box; transform-origin: 50% 100%;
             transition: transform .16s cubic-bezier(.3, 1.5, .5, 1); }
-#hero.jump #hero-hat { transform: translateY(-4px) rotate(-5deg); }
-#hero.fall #hero-hat { transform: translateY(-2px) rotate(-3deg); }
-#hero.jump.dbl #hero-hat { transform: translateY(-10px) rotate(-13deg); }
-#hero.fall.dbl #hero-hat { transform: translateY(-5px) rotate(-7deg); }
+#hero.jump .hero-hat { transform: translateY(-4px) rotate(-5deg); }
+#hero.fall .hero-hat { transform: translateY(-2px) rotate(-3deg); }
+#hero.jump.dbl .hero-hat { transform: translateY(-10px) rotate(-13deg); }
+#hero.fall.dbl .hero-hat { transform: translateY(-5px) rotate(-7deg); }
 /* once it has flown off, it is not on his head any more */
-#hero.lost #hero-hat { opacity: 0; }
+#hero.lost .hero-hat { opacity: 0; }
+
+/* the twins hi-five instead of pirouetting, and Henry's glasses stay on his nose */
+.hifive { display: none; }
+#game.twins #hero.dance .hifive { display: block; }
+#game.twins #hero.dance .arm-a, #game.twins #hero.dance .arm-b,
+#game.twins #hero.ride.dance .arm-up-a, #game.twins #hero.ride.dance .arm-up-b { display: none; }
+#game.twins #hero.dance .leg-a { transform: rotate(-16deg); }
+#game.twins #hero.dance .leg-b { transform: rotate(14deg); }
+#game.twins #hero.jump .hero-hat, #game.twins #hero.fall .hero-hat,
+#game.twins #hero.jump.dbl .hero-hat, #game.twins #hero.fall.dbl .hero-hat { transform: none; }
 
 #hero.hurt { animation: hurt .5s steps(2) 3; }
 @keyframes hurt { 0% { opacity: 1; } 50% { opacity: .25; } 100% { opacity: 1; } }
@@ -238,6 +248,8 @@ body {
     pointer-events: none; display: none;
 }
 #mount.on { display: block; }
+/* the pad has to stand as tall as the capybara's back, or they ride behind it */
+#game.twins #mount { width: 172px; }
 #mount svg { display: block; width: 100%; height: auto; animation: trot .3s ease-in-out infinite; }
 
 #ridebar {
@@ -307,13 +319,14 @@ body {
 .plate .cap { display: none; }
 .plate.mid { font-size: 21px; opacity: .92; }
 /* the only thing in the HUD you can actually press */
-#mute {
-    pointer-events: auto; cursor: pointer; align-self: center;
+.tools { display: flex; gap: 5px; align-self: center; }
+#mute, #cog {
+    pointer-events: auto; cursor: pointer;
     padding: 6px 7px 3px; line-height: 0;
     background: var(--panel); border: 3px solid var(--ink); border-radius: 13px;
     box-shadow: var(--pop);
 }
-#mute:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+#mute:active, #cog:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
 #mute .off { display: none; }
 #mute.muted .on { display: none; }
 #mute.muted .off { display: inline; }
@@ -327,13 +340,16 @@ body {
    ============================================================ */
 .card {
     position: absolute; inset: 0; z-index: 10;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center;
     gap: 14px; padding: 22px;
+    /* margin auto rather than justify-content, so a card taller than the screen
+       scrolls instead of having its top cut off */
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
     background: rgba(24,20,32,.55); backdrop-filter: blur(3px);
 }
 .card[hidden] { display: none; }
 .card .inner {
-    position: relative;
+    position: relative; margin: auto 0; flex: none;
     width: 100%; max-width: 330px; padding: 20px;
     background: var(--panel); border: 3.5px solid var(--ink); border-radius: 22px;
     box-shadow: 8px 8px 0 var(--ink); text-align: center;
@@ -368,6 +384,23 @@ body {
     border: 2.5px solid var(--ink); border-radius: 9px; background: #eef4fb;
     font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
 }
+/* pick your runners: the same two buttons on the start card and behind the cog */
+.casts { margin-top: 14px; display: flex; gap: 9px; }
+.cast {
+    flex: 1; cursor: pointer; padding: 7px 5px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font-family: var(--font-display); font-size: 15px; letter-spacing: .02em; color: var(--ink);
+    background: #eef4fb; border: 3px solid var(--ink); border-radius: 15px; box-shadow: var(--pop);
+}
+.cast:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.cast.on { background: var(--gold); }
+.cast .face {
+    width: 48px; height: 48px; border-radius: 50%; overflow: hidden;
+    background: linear-gradient(#cfe4f7, #eaf3fb); border: 2.5px solid var(--ink);
+}
+.cast .face svg { width: 100%; height: 100%; display: block; }
+.cast .face .ko, .cast .face .wob, .cast .face .tongue, .cast .face .hand { display: none; }
+
 .btn {
     margin-top: 16px; width: 100%;
     font-family: var(--font-display); font-size: 24px; font-weight: 400; letter-spacing: .03em;
@@ -384,6 +417,17 @@ body {
 .bestline .ico { width: 17px; height: 17px; vertical-align: -3px; margin-right: 3px; }
 .beat { font-family: var(--font); font-size: 11.5px; font-weight: 900; letter-spacing: .04em;
         opacity: .5; margin-top: -2px; display: none; }
+
+/* a short screen gets a tighter card, so the start card still fits in one view */
+@media (max-height: 720px) {
+    .avatar { width: 78px; height: 78px; margin-bottom: 6px; }
+    .card h1 { font-size: 28px; }
+    .card .keys { margin-top: 8px; gap: 5px 8px; }
+    .cast { font-size: 13px; padding: 5px 4px 4px; }
+    .cast .face { width: 38px; height: 38px; }
+    .casts { margin-top: 10px; }
+    .btn { margin-top: 11px; padding: 9px; font-size: 21px; }
+}
 
 /* ============================================================
    A RECORD IS WORTH A FUSS
@@ -457,8 +501,8 @@ body {
 /* on a phone the icons carry the meaning on their own, and the words come off */
 @media (max-width: 430px) {
     .plate.mid { font-size: 19px; }
-    #mute { padding: 5px 6px 2px; }
-    #mute svg { width: 19px; height: 19px; }
+    #mute, #cog { padding: 5px 6px 2px; }
+    #mute svg, #cog svg { width: 19px; height: 19px; }
 }
 .best { color: var(--gold); }
 #version { position: absolute; bottom: 8px; right: 10px; z-index: 8;
@@ -501,6 +545,27 @@ body {
         <path d="M 9.4 6.2 C 11.4 5.2, 13 4, 12.4 2.8 C 11.7 1.6, 9.8 3.2, 8.6 5 Z"/>
         <ellipse cx="7" cy="9" rx="4.7" ry="4"/>
     </symbol>
+    <symbol id="i-robux" viewBox="0 0 14 14">
+        <path d="M 7 1.2 L 12.4 4.3 L 12.4 10.5 L 7 13.6 L 1.6 10.5 L 1.6 4.3 Z" fill="none"
+              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M 5.4 10.2 V 4.4 H 7.7 C 9.1 4.4, 9.6 5.4, 9.6 6.3 C 9.6 7.2, 9 7.9, 7.9 8 L 9.7 10.2"
+              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-pad" viewBox="0 0 14 14">
+        <path d="M 4.2 3.6 H 9.8 C 11.8 3.6, 13.2 5.6, 13.4 8 C 13.5 9.6, 12.8 10.6, 11.8 10.6
+                 C 10.6 10.6, 10.2 9.2, 9 8.8 H 5 C 3.8 9.2, 3.4 10.6, 2.2 10.6
+                 C 1.2 10.6, .5 9.6, .6 8, .8 5.6, 2.2 3.6, 4.2 3.6 Z"/>
+        <path d="M 3 6.4 H 5.6 M 4.3 5.1 V 7.7" fill="none" stroke="#fffdf8" stroke-width="1.1"
+              stroke-linecap="round"/>
+        <circle cx="9.9" cy="5.9" r="1" fill="#fffdf8"/>
+        <circle cx="11.4" cy="7.4" r="1" fill="#fffdf8"/>
+    </symbol>
+    <symbol id="i-nora" viewBox="0 0 14 14">
+        <circle cx="7" cy="5" r="3.3"/>
+        <path d="M 7 .5 C 8.3 .5, 8.8 1.8, 8 2.5 C 7.4 2, 6.6 2, 6 2.5 C 5.2 1.8, 5.7 .5, 7 .5 Z"/>
+        <path d="M 3.3 13.4 C 3 10.5, 4.6 8.7, 7 8.7 C 9.4 8.7, 11 10.5, 10.7 13.4 Z"/>
+    </symbol>
     <symbol id="i-cup" viewBox="0 0 14 14">
         <path d="M 4 1.4 H 10 V 5.2 C 10 7.3, 8.7 8.6, 7 8.6 C 5.3 8.6, 4 7.3, 4 5.2 Z"/>
         <path d="M 6 8.4 H 8 V 10.4 H 6 Z"/><path d="M 3.4 10.4 H 10.6 V 12.6 H 3.4 Z"/>
@@ -526,116 +591,6 @@ body {
 
     <div id="hero" class="run">
         <svg viewBox="0 0 104 132" aria-label="George, running on two blades">
-            <defs>
-                <!-- One blade. A running blade bows rearward from the socket and
-                     sweeps its toe FORWARD, ahead of the leg — drawn the other way
-                     round it reads as a bird's leg, and the whole run looks
-                     backwards. Stroked rather than filled: an ink pass under a
-                     carbon pass gives the house outline for free. -->
-                <g id="blade">
-                    <path d="M 0 0 C -4.4 9, -3.6 19, 1.6 25.4 C 6.2 31, 11.2 33.4, 15.4 34.4"
-                          fill="none" stroke="#241F2E" stroke-width="10.5" stroke-linecap="round"/>
-                    <path d="M 0 0 C -4.4 9, -3.6 19, 1.6 25.4 C 6.2 31, 11.2 33.4, 15.4 34.4"
-                          fill="none" stroke="#3C4254" stroke-width="6.2" stroke-linecap="round"/>
-                    <path d="M -0.6 7 C -2.4 13, -1.6 19, 1.4 23.4"
-                          fill="none" stroke="#7E88A4" stroke-width="1.6" stroke-linecap="round"/>
-                    <path d="M 11.6 35.6 L 17.6 35.6" stroke="#241F2E"
-                          stroke-width="4.4" stroke-linecap="round"/>
-                </g>
-            </defs>
-
-            <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
-                <g class="leg-b" opacity=".82">
-                    <path d="M 50 78 L 47 95" stroke="#F0B892" stroke-width="10"/>
-                    <rect x="41.5" y="93" width="11" height="9" rx="3" fill="#2A3040" stroke-width="2.2"/>
-                    <g transform="translate(47,97)"><use href="#blade"/></g>
-                </g>
-                <g id="buddy" transform="translate(21 44) scale(.55)" opacity=".95">
-                    <g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-        <path d="M 12.5 10 C 7 6.5, 1.5 7, 1.2 11.4 C 0.9 15.6, 6.5 17.6, 12.5 16.6 Z" fill="#9CC5E4"/>
-        <path d="M 31.5 10 C 37 6.5, 42.5 7, 42.8 11.4 C 43.1 15.6, 37.5 17.6, 31.5 16.6 Z" fill="#9CC5E4"/>
-        <path d="M 8 45 C 5 38, 6 28, 12 25 L 32 25 C 38 28, 39 38, 36 45 Z" fill="#9CC5E4"/>
-        <ellipse cx="22" cy="37" rx="8.5" ry="8" fill="#F6FAFD"/>
-        <ellipse cx="12" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
-        <ellipse cx="32" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
-        <path d="M 22 4.5 C 31 4.5, 37 10, 37 16.5 C 37 23, 31 27.5, 22 27.5
-                 C 13 27.5, 7 23, 7 16.5 C 7 10, 13 4.5, 22 4.5 Z" fill="#9CC5E4"/>
-        <path d="M 22 11.5 C 26 11.5, 28.5 14, 30.5 17 C 32.5 20, 31 25.5, 26 25.5
-                 C 23.6 25.5, 22.6 24.4, 22 23 C 21.4 24.4, 20.4 25.5, 18 25.5
-                 C 13 25.5, 11.5 20, 13.5 17 C 15.5 14, 18 11.5, 22 11.5 Z" fill="#F6FAFD"/>
-        <path d="M 22 16.6 C 20.6 15, 18.4 15.6, 18.4 17.6 C 18.4 19.4, 20.4 20.6, 22 22
-                 C 23.6 20.6, 25.6 19.4, 25.6 17.6 C 25.6 15.6, 23.4 15, 22 16.6 Z"
-              fill="#7EB8E8" stroke-width="1.6"/>
-        <circle cx="16.4" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
-        <circle cx="27.6" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
-        <circle cx="17" cy="13.1" r=".6" fill="#fff" stroke="none"/>
-        <circle cx="28.2" cy="13.1" r=".6" fill="#fff" stroke="none"/>
-        <g stroke="#8E97A3" stroke-width="1.3" fill="none">
-            <path d="M 11.5 9.5 L 15.5 12.5 M 14 8.6 L 12.8 13.4"/>
-            <path d="M 25 39 L 29 42 M 27.6 38 L 26.4 43"/>
-        </g>
-    </g>
-                </g>
-                <g id="arm-up-b" opacity=".82">
-                    <path d="M 54 50 C 45.5 43, 36.5 33, 32.5 22" fill="none"
-                          stroke="#241F2E" stroke-width="11" stroke-linecap="round"/>
-                    <path d="M 54 50 C 45.5 43, 36.5 33, 32.5 22" fill="none"
-                          stroke="#F0B892" stroke-width="7" stroke-linecap="round"/>
-                </g>
-                <g class="arm-b" opacity=".82">
-                    <path d="M 54 50 L 50.5 61 L 60 61.5" fill="none" stroke="#F0B892"
-                          stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </g>
-
-                <g class="torso" transform="rotate(-5 53 70)">
-                    <path d="M 44 66 L 60 66 L 58 80 L 46 80 Z" fill="#1C82B4" stroke-width="2.4"/>
-                    <path d="M 45 42 C 44 36, 62 36, 61 42 L 62 68 L 44 68 Z" fill="#2FA8E0" stroke-width="2.4"/>
-                    <path d="M 47 44 L 48 66" stroke="#1C82B4" stroke-width="4" opacity=".5"/>
-                    <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
-                    <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
-                             C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
-                          fill="#F2C75C" stroke-width="2.2"/>
-                    <g class="eye">
-                        <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
-                        <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
-                    </g>
-                    <g id="eye-x">
-                        <path d="M 61.6 24.2 l 5.4 5.4 M 67 24.2 l -5.4 5.4"
-                              stroke="#241F2E" stroke-width="2" stroke-linecap="round"/>
-                    </g>
-                    <path d="M 61 34.5 q 3.4 2.4 6 -.6" fill="none" stroke-width="1.9"/>
-                    <g id="hero-hat">
-                        <path d="M 48 17 C 50 8, 62 6, 68 12 L 70 18 Z" fill="#B5703A" stroke-width="2.3"/>
-                        <path d="M 38 19.5 C 46 14.5, 74 13.5, 82 19 C 74 24, 46 24.5, 38 19.5 Z"
-                              fill="#B5703A" stroke-width="2.3"/>
-                        <path d="M 44 19 C 52 16, 74 15.5, 79 18.5" fill="none"
-                              stroke="#D69B5F" stroke-width="1.5"/>
-                    </g>
-                </g>
-
-                <g id="arm-up-a">
-                    <path d="M 58 50 C 67.5 43, 76 34, 79.5 24" fill="none"
-                          stroke="#241F2E" stroke-width="11.5" stroke-linecap="round"/>
-                    <path d="M 58 50 C 67.5 43, 76 34, 79.5 24" fill="none"
-                          stroke="#FFDCC0" stroke-width="7.6" stroke-linecap="round"/>
-                </g>
-                <g class="arm-a">
-                    <path d="M 58 50 L 54.5 62 L 65 62.5" fill="none" stroke="#FFDCC0"
-                          stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <g id="mic" transform="translate(-1.6 2.8)">
-                        <path d="M 62.4 62.4 L 67 63.6" stroke="#241F2E" stroke-width="3.6"/>
-                        <rect x="64" y="59.2" width="10" height="9.8" rx="4.9"
-                              fill="#3C4254" stroke-width="2.2"/>
-                        <path d="M 66.6 61.9 L 71.4 61.9 M 66.6 66.3 L 71.4 66.3"
-                              stroke="#8B94AC" stroke-width="1.4"/>
-                    </g>
-                </g>
-                <g class="leg-a">
-                    <path d="M 55 78 L 58 95" stroke="#FFDCC0" stroke-width="10.5"/>
-                    <rect x="52.5" y="93" width="11" height="9" rx="3" fill="#39415A" stroke-width="2.2"/>
-                    <g transform="translate(58,97)"><use href="#blade"/></g>
-                </g>
-            </g>
         </svg>
     </div>
 
@@ -646,30 +601,42 @@ body {
     <div id="hud">
         <div class="plate"><svg class="ico"><use href="#i-star"/></svg><span><span class="cap">Score</span><span id="score">0</span></span><b id="mult" hidden>x2</b></div>
         <div class="plate mid" id="bestplate"><svg class="ico"><use href="#i-cup"/></svg><span><span class="cap">Best</span><span id="best-val">0</span></span></div>
-        <button id="mute" aria-label="Sound on or off">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
-                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M 4 9 H 8 L 13 5 V 19 L 8 15 H 4 Z" fill="#241F2E"/>
-                <g class="on"><path d="M 16.5 9.5 q 2 2.5 0 5"/><path d="M 19.5 7 q 3.6 5 0 10"/></g>
-                <g class="off"><path d="M 17 9.5 L 22 14.5 M 22 9.5 L 17 14.5"/></g>
-            </svg>
-        </button>
+        <div class="tools">
+            <button id="mute" aria-label="Sound on or off">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
+                     stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M 4 9 H 8 L 13 5 V 19 L 8 15 H 4 Z" fill="#241F2E"/>
+                    <g class="on"><path d="M 16.5 9.5 q 2 2.5 0 5"/><path d="M 19.5 7 q 3.6 5 0 10"/></g>
+                    <g class="off"><path d="M 17 9.5 L 22 14.5 M 22 9.5 L 17 14.5"/></g>
+                </svg>
+            </button>
+            <button id="cog" aria-label="Settings">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
+                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3.5"/>
+                    <path d="M 12 2.4 V 5.2 M 12 18.8 V 21.6 M 2.4 12 H 5.2 M 18.8 12 H 21.6
+                             M 5.2 5.2 L 7.2 7.2 M 16.8 16.8 L 18.8 18.8
+                             M 18.8 5.2 L 16.8 7.2 M 7.2 16.8 L 5.2 18.8"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <div class="card" id="start-card">
         <div class="inner">
             <div class="avatar portrait"></div>
 
-            <h1>Run George,<br>Run</h1>
-            <p>Two blades, one hat, no brakes.</p>
+            <h1 id="title">Run George,<br>Run</h1>
+            <p id="tagline">Two blades, one hat, no brakes.</p>
             <div class="keys">
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump, or flick up</span></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-boost"/></svg>Tap again</span><span class="what">blade boost, mid-air</span></div>
+                <div class="row" id="row-boost"></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide, or dive down</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime, and a combo</span></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-capy"/></svg>RIDE!</span><span class="what">ride the big capybara</span></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-fudge"/></svg>FUDGE!</span><span class="what">he takes one hit for you</span></div>
+                <div class="row" id="row-ride"></div>
+                <div class="row" id="row-buddy"></div>
             </div>
+            <div class="casts" id="pick-start"></div>
             <button class="btn" id="go">Run!</button>
         </div>
     </div>
@@ -689,11 +656,20 @@ body {
         </div>
     </div>
 
+    <div class="card" id="set-card" hidden>
+        <div class="inner">
+            <h2>Who&rsquo;s running?</h2>
+            <p>Swap the cast, the collectibles and the moves.</p>
+            <div class="casts" id="pick-set"></div>
+            <button class="btn" id="close-set">Done</button>
+        </div>
+    </div>
+
     <div id="version">v1</div>
 </div>
 
 <script>
-const APP_VERSION = 'v47';
+const APP_VERSION = 'v48';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -967,13 +943,13 @@ const world = {
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     slideLeft: 0, dustT: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
-    spawnIn: 420, things: [], t: 0
+    spawnIn: 420, things: [], t: 0, paused: false
 };
 
 const fmt = n => Math.round(n).toLocaleString('en-GB');
 // George, facing the player — the same face as his Fingaz portrait, with the
 // moods this game needs
-const PORTRAIT = `<svg viewBox="0 0 64 64">
+const PORTRAIT_GEORGE = `<svg viewBox="0 0 64 64">
     <path d="M 10 60 C 8 22, 19 2, 32 2 C 45 2, 56 22, 54 60 L 45 57 C 47 36, 46 22, 43 16
              C 38 24, 26 24, 21 16 C 18 22, 17 36, 19 57 Z"
           fill="#D2A03A" stroke="#241F2E" stroke-width="1.7" stroke-linejoin="round"/>
@@ -1015,7 +991,6 @@ const PORTRAIT = `<svg viewBox="0 0 64 64">
               fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
         <path d="M 43.4 47.6 q 1.6 .6 2.2 2" fill="none" stroke="#E2A98C" stroke-width="1.1"
               stroke-linecap="round"/></g></svg>`;
-document.querySelectorAll('.portrait').forEach(el => { el.innerHTML = PORTRAIT; });
 
 const bestKey = 'rgr-best';
 let best = 0;
@@ -1102,6 +1077,77 @@ const FUDGE = `<svg width="48" height="52" viewBox="0 0 44 48">
 const BIG_CAPY = CAPY.replace('width="36" height="27"', 'width="150" height="112"')
                      + '<div class="ride-tag">RIDE!</div>';
 
+/* ---- the other cast: Henry and Arty, Nora, and what they chase -------- */
+// a Robux-style coin — the gold hex and an R, drawn in the house hand
+const ROBUX = `<svg width="34" height="34" viewBox="0 0 34 34">
+    <g stroke="#241F2E" stroke-width="2.4" stroke-linejoin="round">
+        <path d="M 17 2 L 30 9 L 30 25 L 17 32 L 4 25 L 4 9 Z" fill="#F4B32C"/>
+        <path d="M 17 6 L 26.5 11.2 L 26.5 22.8 L 17 28 L 7.5 22.8 L 7.5 11.2 Z"
+              fill="#FFD75E" stroke-width="1.6"/>
+        <path d="M 13 23 L 13 11 L 18.5 11 C 21.5 11, 22.5 13, 22.5 14.8
+                 C 22.5 16.6, 21.4 18, 19.4 18.4 L 22.8 23"
+              fill="none" stroke="#241F2E" stroke-width="2.6" stroke-linecap="round"/>
+    </g></svg>`;
+// Nora, small enough to be carried and brave enough to take a hit
+const NORA = `<svg width="42" height="50" viewBox="0 0 44 52"><g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 13 33 L 10 45" stroke="#E98CA8" stroke-width="7"/>
+        <path d="M 31 33 L 34 45" stroke="#E98CA8" stroke-width="7"/>
+        <ellipse cx="9" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
+        <ellipse cx="35" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
+        <path d="M 12 42 C 9 34, 10 26, 14 24 L 30 24 C 34 26, 35 34, 32 42 Z" fill="#FBEFD8"/>
+        <path d="M 12.5 28 L 6 36" stroke="#FFDCC0" stroke-width="6"/>
+        <path d="M 31.5 28 L 38 36" stroke="#FFDCC0" stroke-width="6"/>
+        <circle cx="22" cy="14.5" r="12.5" fill="#FFDCC0"/>
+        <path d="M 22 2 C 27 2, 28.5 7, 26.5 9.5 C 24.5 7.5, 19.5 7.5, 17.5 9.5
+                 C 15.5 7, 17 2, 22 2 Z" fill="#8A5E38"/>
+        <path d="M 9.8 14 C 9.5 7.5, 14.5 3.5, 22 3.5 C 29.5 3.5, 34.5 7.5, 34.2 14
+                 C 32 10.5, 27.5 9, 22 9 C 16.5 9, 12 10.5, 9.8 14 Z" fill="#8A5E38"/>
+        <circle cx="17" cy="15.5" r="2" fill="#241F2E" stroke="none"/>
+        <circle cx="27" cy="15.5" r="2" fill="#241F2E" stroke="none"/>
+        <circle cx="17.7" cy="14.8" r=".65" fill="#fff" stroke="none"/>
+        <circle cx="27.7" cy="14.8" r=".65" fill="#fff" stroke="none"/>
+        <path d="M 19 20.5 q 3 2.6 6 0" fill="none" stroke-width="1.8"/>
+        <ellipse cx="12.5" cy="19" rx="2.8" ry="1.8" fill="#F08C7A" opacity=".5" stroke="none"/>
+        <ellipse cx="31.5" cy="19" rx="2.8" ry="1.8" fill="#F08C7A" opacity=".5" stroke="none"/>
+    </g></svg>`;
+// the pad they ride instead of a capybara
+const PAD = `<svg width="150" height="96" viewBox="0 0 150 96">
+    <g stroke="#241F2E" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 40 22 L 110 22 C 128 22, 142 38, 145 60 C 147 76, 140 88, 130 88
+                 C 118 88, 112 76, 100 72 L 50 72 C 38 76, 32 88, 20 88
+                 C 10 88, 3 76, 5 60 C 8 38, 22 22, 40 22 Z" fill="#3C4254"/>
+        <path d="M 46 30 L 104 30 C 118 30, 128 42, 131 58 C 120 48, 108 44, 96 44
+                 L 54 44 C 42 44, 30 48, 19 58 C 22 42, 32 30, 46 30 Z"
+              fill="#525A72" stroke-width="3"/>
+        <path d="M 40 52 L 56 52 M 48 44 L 48 60" stroke="#E6EAF2" stroke-width="7"/>
+        <circle cx="104" cy="44" r="6.5" fill="#E8524F" stroke-width="3"/>
+        <circle cx="120" cy="56" r="6.5" fill="#F4B32C" stroke-width="3"/>
+        <circle cx="104" cy="68" r="6.5" fill="#4FB477" stroke-width="3"/>
+        <circle cx="88" cy="56" r="6.5" fill="#2FA8E0" stroke-width="3"/>
+        <circle cx="66" cy="66" r="9" fill="#2A3040" stroke-width="3.4"/>
+        <circle cx="66" cy="66" r="3.4" fill="#8B94AC" stroke="none"/>
+        <rect x="64" y="14" width="22" height="9" rx="4.5" fill="#2A3040"/>
+    </g></svg>`;
+const BIG_PAD = PAD + '<div class="ride-tag">PLAY!</div>';
+const PAD_MINI = `<svg width="46" height="30" viewBox="0 0 150 96">
+    <g stroke="#241F2E" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 40 22 L 110 22 C 128 22, 142 38, 145 60 C 147 76, 140 88, 130 88
+                 C 118 88, 112 76, 100 72 L 50 72 C 38 76, 32 88, 20 88
+                 C 10 88, 3 76, 5 60 C 8 38, 22 22, 40 22 Z" fill="#3C4254"/>
+        <path d="M 46 30 L 104 30 C 118 30, 128 42, 131 58 C 120 48, 108 44, 96 44
+                 L 54 44 C 42 44, 30 48, 19 58 C 22 42, 32 30, 46 30 Z"
+              fill="#525A72" stroke-width="3"/>
+        <path d="M 40 52 L 56 52 M 48 44 L 48 60" stroke="#E6EAF2" stroke-width="7"/>
+        <circle cx="104" cy="44" r="6.5" fill="#E8524F" stroke-width="3"/>
+        <circle cx="120" cy="56" r="6.5" fill="#F4B32C" stroke-width="3"/>
+        <circle cx="104" cy="68" r="6.5" fill="#4FB477" stroke-width="3"/>
+        <circle cx="88" cy="56" r="6.5" fill="#2FA8E0" stroke-width="3"/>
+        <circle cx="66" cy="66" r="9" fill="#2A3040" stroke-width="3.4"/>
+        <circle cx="66" cy="66" r="3.4" fill="#8B94AC" stroke="none"/>
+        <rect x="64" y="14" width="22" height="9" rx="4.5" fill="#2A3040"/>
+    </g></svg>`;
+const NORA_TAG = NORA + '<div class="ride-tag blue">NORA!</div>';
+
 /* height above the ground, and what it costs you to get it wrong */
 const KINDS = {
     crate:  { html: CRATE,  w: 66, h: 66, lift: 0,   line: 'A crate got in the way.' },
@@ -1139,9 +1185,8 @@ const WARN_TIME = 520;
 let warnTimers = [];
 // a hazard gets a red arrow; the two friendly ones announce themselves in person
 const WARN_ART = {
-    ride:  () => [CAPY.replace('width="36" height="27"', 'width="46" height="35"'), 35],
-    fudge: () => [FUDGE.slice(0, FUDGE.indexOf('</svg>') + 6)
-                       .replace('width="48" height="52"', 'width="32" height="35"'), 35],
+    ride:  () => [CAST.ride.warn, 35],
+    fudge: () => [CAST.buddy.warn, 35],
 };
 function warn(kind, ahead = 0, then = null) {
     const k = KIND(kind);
@@ -1170,9 +1215,10 @@ function clearWarnings() {
 }
 
 const KIND = kind =>
-      kind === 'capy'  ? { html: CAPY, w: 36, h: 27, lift: 70 }
-    : kind === 'ride'  ? { html: BIG_CAPY, w: 150, h: 112, lift: 0 }
-    : kind === 'fudge' ? { html: FUDGE, w: 48, h: 52, lift: 8 }
+      kind === 'capy'  ? { html: CAST.coin.html, w: CAST.coin.w, h: CAST.coin.h, lift: 70 }
+    : kind === 'ride'  ? { html: CAST.ride.html, w: 150, h: 112, lift: 0 }
+    : kind === 'fudge' ? { html: CAST.buddy.html, w: CAST.buddy.w, h: CAST.buddy.h,
+                           lift: CAST.buddy.lift }
     : KINDS[kind];
 
 function addThing(kind, ahead = 0, lift = null) {
@@ -1256,7 +1302,522 @@ function jump() {
 const mountEl = document.getElementById('mount');
 const rideBar = document.getElementById('ridebar');
 const rideFill = rideBar.querySelector('i');
-mountEl.innerHTML = CAPY.replace('width="36" height="27"', 'width="150" height="112"');
+
+/* ============================================================
+   THE CAST — who runs, what they collect, what they ride, and who
+   takes the hit for them. Everything below is swapped by applyCast.
+   ============================================================ */
+const HERO_GEORGE = `
+
+            <defs>
+                <!-- One blade. A running blade bows rearward from the socket and
+                     sweeps its toe FORWARD, ahead of the leg — drawn the other way
+                     round it reads as a bird's leg, and the whole run looks
+                     backwards. Stroked rather than filled: an ink pass under a
+                     carbon pass gives the house outline for free. -->
+                <g id="blade">
+                    <path d="M 0 0 C -4.4 9, -3.6 19, 1.6 25.4 C 6.2 31, 11.2 33.4, 15.4 34.4"
+                          fill="none" stroke="#241F2E" stroke-width="10.5" stroke-linecap="round"/>
+                    <path d="M 0 0 C -4.4 9, -3.6 19, 1.6 25.4 C 6.2 31, 11.2 33.4, 15.4 34.4"
+                          fill="none" stroke="#3C4254" stroke-width="6.2" stroke-linecap="round"/>
+                    <path d="M -0.6 7 C -2.4 13, -1.6 19, 1.4 23.4"
+                          fill="none" stroke="#7E88A4" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M 11.6 35.6 L 17.6 35.6" stroke="#241F2E"
+                          stroke-width="4.4" stroke-linecap="round"/>
+                </g>
+            </defs>
+
+            <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
+                <g class="leg-b" opacity=".82">
+                    <path d="M 50 78 L 47 95" stroke="#F0B892" stroke-width="10"/>
+                    <rect x="41.5" y="93" width="11" height="9" rx="3" fill="#2A3040" stroke-width="2.2"/>
+                    <g transform="translate(47,97)"><use href="#blade"/></g>
+                </g>
+                <g class="buddy" transform="translate(21 44) scale(.55)" opacity=".95">
+                    <g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 12.5 10 C 7 6.5, 1.5 7, 1.2 11.4 C 0.9 15.6, 6.5 17.6, 12.5 16.6 Z" fill="#9CC5E4"/>
+        <path d="M 31.5 10 C 37 6.5, 42.5 7, 42.8 11.4 C 43.1 15.6, 37.5 17.6, 31.5 16.6 Z" fill="#9CC5E4"/>
+        <path d="M 8 45 C 5 38, 6 28, 12 25 L 32 25 C 38 28, 39 38, 36 45 Z" fill="#9CC5E4"/>
+        <ellipse cx="22" cy="37" rx="8.5" ry="8" fill="#F6FAFD"/>
+        <ellipse cx="12" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
+        <ellipse cx="32" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
+        <path d="M 22 4.5 C 31 4.5, 37 10, 37 16.5 C 37 23, 31 27.5, 22 27.5
+                 C 13 27.5, 7 23, 7 16.5 C 7 10, 13 4.5, 22 4.5 Z" fill="#9CC5E4"/>
+        <path d="M 22 11.5 C 26 11.5, 28.5 14, 30.5 17 C 32.5 20, 31 25.5, 26 25.5
+                 C 23.6 25.5, 22.6 24.4, 22 23 C 21.4 24.4, 20.4 25.5, 18 25.5
+                 C 13 25.5, 11.5 20, 13.5 17 C 15.5 14, 18 11.5, 22 11.5 Z" fill="#F6FAFD"/>
+        <path d="M 22 16.6 C 20.6 15, 18.4 15.6, 18.4 17.6 C 18.4 19.4, 20.4 20.6, 22 22
+                 C 23.6 20.6, 25.6 19.4, 25.6 17.6 C 25.6 15.6, 23.4 15, 22 16.6 Z"
+              fill="#7EB8E8" stroke-width="1.6"/>
+        <circle cx="16.4" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
+        <circle cx="27.6" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
+        <circle cx="17" cy="13.1" r=".6" fill="#fff" stroke="none"/>
+        <circle cx="28.2" cy="13.1" r=".6" fill="#fff" stroke="none"/>
+        <g stroke="#8E97A3" stroke-width="1.3" fill="none">
+            <path d="M 11.5 9.5 L 15.5 12.5 M 14 8.6 L 12.8 13.4"/>
+            <path d="M 25 39 L 29 42 M 27.6 38 L 26.4 43"/>
+        </g>
+    </g>
+                </g>
+                <g class="arm-up-b" opacity=".82">
+                    <path d="M 54 50 C 45.5 43, 36.5 33, 32.5 22" fill="none"
+                          stroke="#241F2E" stroke-width="11" stroke-linecap="round"/>
+                    <path d="M 54 50 C 45.5 43, 36.5 33, 32.5 22" fill="none"
+                          stroke="#F0B892" stroke-width="7" stroke-linecap="round"/>
+                </g>
+                <g class="arm-b" opacity=".82">
+                    <path d="M 54 50 L 50.5 61 L 60 61.5" fill="none" stroke="#F0B892"
+                          stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </g>
+
+                <g class="torso" transform="rotate(-5 53 70)">
+                    <path d="M 44 66 L 60 66 L 58 80 L 46 80 Z" fill="#1C82B4" stroke-width="2.4"/>
+                    <path d="M 45 42 C 44 36, 62 36, 61 42 L 62 68 L 44 68 Z" fill="#2FA8E0" stroke-width="2.4"/>
+                    <path d="M 47 44 L 48 66" stroke="#1C82B4" stroke-width="4" opacity=".5"/>
+                    <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
+                             C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
+                          fill="#F2C75C" stroke-width="2.2"/>
+                    <g class="eye">
+                        <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
+                        <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
+                    </g>
+                    <g class="eye-x">
+                        <path d="M 61.6 24.2 l 5.4 5.4 M 67 24.2 l -5.4 5.4"
+                              stroke="#241F2E" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <path d="M 61 34.5 q 3.4 2.4 6 -.6" fill="none" stroke-width="1.9"/>
+                    <g class="hero-hat">
+                        <path d="M 48 17 C 50 8, 62 6, 68 12 L 70 18 Z" fill="#B5703A" stroke-width="2.3"/>
+                        <path d="M 38 19.5 C 46 14.5, 74 13.5, 82 19 C 74 24, 46 24.5, 38 19.5 Z"
+                              fill="#B5703A" stroke-width="2.3"/>
+                        <path d="M 44 19 C 52 16, 74 15.5, 79 18.5" fill="none"
+                              stroke="#D69B5F" stroke-width="1.5"/>
+                    </g>
+                </g>
+
+                <g class="arm-up-a">
+                    <path d="M 58 50 C 67.5 43, 76 34, 79.5 24" fill="none"
+                          stroke="#241F2E" stroke-width="11.5" stroke-linecap="round"/>
+                    <path d="M 58 50 C 67.5 43, 76 34, 79.5 24" fill="none"
+                          stroke="#FFDCC0" stroke-width="7.6" stroke-linecap="round"/>
+                </g>
+                <g class="arm-a">
+                    <path d="M 58 50 L 54.5 62 L 65 62.5" fill="none" stroke="#FFDCC0"
+                          stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <g class="mic" transform="translate(-1.6 2.8)">
+                        <path d="M 62.4 62.4 L 67 63.6" stroke="#241F2E" stroke-width="3.6"/>
+                        <rect x="64" y="59.2" width="10" height="9.8" rx="4.9"
+                              fill="#3C4254" stroke-width="2.2"/>
+                        <path d="M 66.6 61.9 L 71.4 61.9 M 66.6 66.3 L 71.4 66.3"
+                              stroke="#8B94AC" stroke-width="1.4"/>
+                    </g>
+                </g>
+                <g class="leg-a">
+                    <path d="M 55 78 L 58 95" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <rect x="52.5" y="93" width="11" height="9" rx="3" fill="#39415A" stroke-width="2.2"/>
+                    <g transform="translate(58,97)"><use href="#blade"/></g>
+                </g>
+            </g>
+        `;
+
+const HERO_TWINS = `
+            <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
+                <g class="hifive">
+                    <path d="M 58 48 C 55.5 36, 54 18, 53.8 6" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 58 48 C 55.5 36, 54 18, 53.8 6" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <path d="M 34 48 C 35.5 36, 39 18, 42.4 6" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 34 48 C 35.5 36, 39 18, 42.4 6" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="54.2" cy="3.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <circle cx="42" cy="3.6" r="5.8" fill="#FFDCC0" stroke="#241F2E" stroke-width="2.2"/>
+                    <path d="M 48.2 5 L 48.2 -3 M 43 -3 L 40 -7 M 53.4 -3 L 56.4 -7
+                             M 38.5 1 L 33.5 -.5 M 57.9 1 L 62.9 -.5"
+                          fill="none" stroke="#F4B32C" stroke-width="2.8" stroke-linecap="round"/>
+                </g>
+                
+                <g class="leg-b" opacity=".8">
+                    <path d="M 27 82 L 28 116" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <path d="M 27 78 L 27.6 94" stroke="#39415A" stroke-width="12.5"/>
+                    <rect x="22.5" y="116" width="15" height="10" rx="4"
+                          fill="#E8524F" stroke-width="2.2"/>
+                    <rect x="21.5" y="123" width="17" height="6" rx="3"
+                          fill="#F4F6FA" stroke-width="2.2"/>
+                </g>
+                <g class="arm-up-b" opacity=".8" style="transform-origin:30px 48px">
+                    <path d="M 30 48 C 20.759999999999998 42, 16.36 33, 8 22" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 30 48 C 20.759999999999998 42, 16.36 33, 8 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="8" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
+                </g>
+                <g class="arm-b" opacity=".8" style="transform-origin:30px 48px">
+                    <path d="M 30 45 L 28.8 54" fill="none" stroke="#388B5A" stroke-width="10.5"/>
+                    <path d="M 30 48 L 28 59 L 37.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
+                          stroke-linejoin="round"/>
+                    <circle cx="37.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
+                    
+                </g>
+
+                <g class="buddy" transform="translate(-4 28) scale(.66)"><g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 13 33 L 10 45" stroke="#E98CA8" stroke-width="7"/>
+        <path d="M 31 33 L 34 45" stroke="#E98CA8" stroke-width="7"/>
+        <ellipse cx="9" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
+        <ellipse cx="35" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
+        <path d="M 12 42 C 9 34, 10 26, 14 24 L 30 24 C 34 26, 35 34, 32 42 Z" fill="#FBEFD8"/>
+        <path d="M 12.5 28 L 6 36" stroke="#FFDCC0" stroke-width="6"/>
+        <path d="M 31.5 28 L 38 36" stroke="#FFDCC0" stroke-width="6"/>
+        <circle cx="22" cy="14.5" r="12.5" fill="#FFDCC0"/>
+        <path d="M 22 2 C 27 2, 28.5 7, 26.5 9.5 C 24.5 7.5, 19.5 7.5, 17.5 9.5
+                 C 15.5 7, 17 2, 22 2 Z" fill="#8A5E38"/>
+        <path d="M 9.8 14 C 9.5 7.5, 14.5 3.5, 22 3.5 C 29.5 3.5, 34.5 7.5, 34.2 14
+                 C 32 10.5, 27.5 9, 22 9 C 16.5 9, 12 10.5, 9.8 14 Z" fill="#8A5E38"/>
+        <circle cx="17" cy="15.5" r="2" fill="#241F2E" stroke="none"/>
+        <circle cx="27" cy="15.5" r="2" fill="#241F2E" stroke="none"/>
+        <circle cx="17.7" cy="14.8" r=".65" fill="#fff" stroke="none"/>
+        <circle cx="27.7" cy="14.8" r=".65" fill="#fff" stroke="none"/>
+        <path d="M 19 20.5 q 3 2.6 6 0" fill="none" stroke-width="1.8"/>
+        <ellipse cx="12.5" cy="19" rx="2.8" ry="1.8" fill="#F08C7A" opacity=".5" stroke="none"/>
+        <ellipse cx="31.5" cy="19" rx="2.8" ry="1.8" fill="#F08C7A" opacity=".5" stroke="none"/>
+    </g></g>
+                <g class="torso" transform="rotate(-5 29 70)">
+                    <path d="M 22 67 L 38 67 L 36.5 86 L 23 86 Z"
+                          fill="#39415A" stroke-width="2.4"/>
+                    <path d="M 22.5 42 C 21.5 36.5, 38.5 36.5, 37.5 42
+                             L 38.5 70 L 21.5 70 Z" fill="#4FB477" stroke-width="2.4"/>
+                    <path d="M 25 45 L 26 68" stroke="#388B5A" stroke-width="3.6"
+                          opacity=".55"/>
+                    <circle cx="34" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 21 27.5 C 19.5 13.5, 28 10.5, 34.5 11.2
+                             C 43 12, 47.4 17.5, 46.6 26
+                             C 44.5 20.5, 39.5 18.2, 34.5 18.8
+                             C 28.5 19.5, 23.5 22.5, 21 27.5 Z"
+                          fill="#7A5230" stroke-width="2.2"/>
+                    <path d="M 21.4 15 C 17.5 16.5, 17 22, 19.5 25.5
+                             C 19.4 20.5, 20.2 17, 21.4 15 Z"
+                          fill="#5E3D23" stroke-width="2"/>
+                    <g class="eye">
+                        <ellipse cx="40.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
+                        <circle cx="41.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
+                        <circle cx="41.7" cy="25.4" r=".55" fill="#fff" stroke="none"/>
+                    </g>
+                    <g class="eye-x">
+                        <path d="M 37.7 23.2 l 5.4 5.4 M 43.1 23.2 l -5.4 5.4"
+                              stroke="#241F2E" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <path d="M 37.6 33.4 q 3.4 2.6 6 -.4" fill="none" stroke-width="1.9"/>
+                    <ellipse cx="32" cy="32.5" rx="3" ry="1.8" fill="#F08C7A" opacity=".45"
+                             stroke="none"/>
+                    
+                </g>
+
+                <g class="arm-up-a" style="transform-origin:34px 48px">
+                    <path d="M 34 48 C 42.82 42, 47.019999999999996 33, 55 22" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 34 48 C 42.82 42, 47.019999999999996 33, 55 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="55" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
+                </g>
+                <g class="arm-a" style="transform-origin:34px 48px">
+                    <path d="M 34 45 L 32.8 54" fill="none" stroke="#388B5A" stroke-width="10.5"/>
+                    <path d="M 34 48 L 32 59 L 43.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
+                          stroke-linejoin="round"/>
+                    <circle cx="43.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
+                    <g class="mic" transform="translate(-1.4 2.6)">
+                        <path d="M 38.4 62.4 L 43 63.6" stroke="#241F2E" stroke-width="3.4"/>
+                        <rect x="40" y="59.2" width="9.4" height="9.4" rx="4.7"
+                              fill="#3C4254" stroke-width="2.2"/>
+                        <path d="M 42.5 61.8 L 47 61.8 M 42.5 66.2 L 47 66.2"
+                              stroke="#8B94AC" stroke-width="1.4"/>
+                    </g>
+                </g>
+                <g class="leg-a">
+                    <path d="M 31 82 L 34 116" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <path d="M 31 78 L 31.6 94" stroke="#39415A" stroke-width="12.5"/>
+                    <rect x="28.5" y="116" width="15" height="10" rx="4"
+                          fill="#E8524F" stroke-width="2.2"/>
+                    <rect x="27.5" y="123" width="17" height="6" rx="3"
+                          fill="#F4F6FA" stroke-width="2.2"/>
+                </g>
+                
+                <g class="leg-b" opacity=".8">
+                    <path d="M 51 82 L 52 116" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <path d="M 51 78 L 51.6 94" stroke="#39415A" stroke-width="12.5"/>
+                    <rect x="46.5" y="116" width="15" height="10" rx="4"
+                          fill="#E8524F" stroke-width="2.2"/>
+                    <rect x="45.5" y="123" width="17" height="6" rx="3"
+                          fill="#F4F6FA" stroke-width="2.2"/>
+                </g>
+                <g class="arm-up-b" opacity=".8" style="transform-origin:54px 48px">
+                    <path d="M 54 48 C 44.76 42, 40.36 33, 32 22" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 54 48 C 44.76 42, 40.36 33, 32 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="32" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
+                </g>
+                <g class="arm-b" opacity=".8" style="transform-origin:54px 48px">
+                    <path d="M 54 45 L 52.8 54" fill="none" stroke="#1C82B4" stroke-width="10.5"/>
+                    <path d="M 54 48 L 52 59 L 61.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
+                          stroke-linejoin="round"/>
+                    <circle cx="61.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
+                    
+                </g>
+
+                <g class="torso" transform="rotate(-5 53 70)">
+                    <path d="M 46 67 L 62 67 L 60.5 86 L 47 86 Z"
+                          fill="#39415A" stroke-width="2.4"/>
+                    <path d="M 46.5 42 C 45.5 36.5, 62.5 36.5, 61.5 42
+                             L 62.5 70 L 45.5 70 Z" fill="#2FA8E0" stroke-width="2.4"/>
+                    <path d="M 49 45 L 50 68" stroke="#1C82B4" stroke-width="3.6"
+                          opacity=".55"/>
+                    <circle cx="58" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 45 27.5 C 43.5 13.5, 52 10.5, 58.5 11.2
+                             C 67 12, 71.4 17.5, 70.6 26
+                             C 68.5 20.5, 63.5 18.2, 58.5 18.8
+                             C 52.5 19.5, 47.5 22.5, 45 27.5 Z"
+                          fill="#7A5230" stroke-width="2.2"/>
+                    <path d="M 45.4 15 C 41.5 16.5, 41 22, 43.5 25.5
+                             C 43.4 20.5, 44.2 17, 45.4 15 Z"
+                          fill="#5E3D23" stroke-width="2"/>
+                    <g class="eye">
+                        <ellipse cx="64.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
+                        <circle cx="65.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
+                        <circle cx="65.7" cy="25.4" r=".55" fill="#fff" stroke="none"/>
+                    </g>
+                    <g class="eye-x">
+                        <path d="M 61.7 23.2 l 5.4 5.4 M 67.1 23.2 l -5.4 5.4"
+                              stroke="#241F2E" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <path d="M 61.6 33.4 q 3.4 2.6 6 -.4" fill="none" stroke-width="1.9"/>
+                    <ellipse cx="56" cy="32.5" rx="3" ry="1.8" fill="#F08C7A" opacity=".45"
+                             stroke="none"/>
+                    <g class="hero-hat">
+                        <path d="M 58.8 24.4 C 54.5 23, 51 22.8, 48.5 23.8"
+                              fill="none" stroke="#241F2E" stroke-width="1.9"/>
+                        <circle cx="64.4" cy="26" r="5.2" fill="none"
+                                stroke="#241F2E" stroke-width="2"/>
+                        <path d="M 69.5 25 q 1.8 .4 2.4 1.6" fill="none" stroke="#241F2E"
+                              stroke-width="1.8"/>
+                    </g>
+                </g>
+
+                <g class="arm-up-a" style="transform-origin:58px 48px">
+                    <path d="M 58 48 C 66.82 42, 71.02 33, 79 22" fill="none" stroke="#241F2E" stroke-width="11"/>
+                    <path d="M 58 48 C 66.82 42, 71.02 33, 79 22" fill="none" stroke="#FFDCC0" stroke-width="7.2"/>
+                    <circle cx="79" cy="21" r="4.6" fill="#FFDCC0" stroke-width="2.2"/>
+                </g>
+                <g class="arm-a" style="transform-origin:58px 48px">
+                    <path d="M 58 45 L 56.8 54" fill="none" stroke="#1C82B4" stroke-width="10.5"/>
+                    <path d="M 58 48 L 56 59 L 67.5 60.5" fill="none" stroke="#FFDCC0" stroke-width="7.6"
+                          stroke-linejoin="round"/>
+                    <circle cx="67.5" cy="60.5" r="4.3" fill="#FFDCC0" stroke-width="2"/>
+                    <g class="mic" transform="translate(-1.4 2.6)">
+                        <path d="M 62.4 62.4 L 67 63.6" stroke="#241F2E" stroke-width="3.4"/>
+                        <rect x="64" y="59.2" width="9.4" height="9.4" rx="4.7"
+                              fill="#3C4254" stroke-width="2.2"/>
+                        <path d="M 66.5 61.8 L 71 61.8 M 66.5 66.2 L 71 66.2"
+                              stroke="#8B94AC" stroke-width="1.4"/>
+                    </g>
+                </g>
+                <g class="leg-a">
+                    <path d="M 55 82 L 58 116" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <path d="M 55 78 L 55.6 94" stroke="#39415A" stroke-width="12.5"/>
+                    <rect x="52.5" y="116" width="15" height="10" rx="4"
+                          fill="#E8524F" stroke-width="2.2"/>
+                    <rect x="51.5" y="123" width="17" height="6" rx="3"
+                          fill="#F4F6FA" stroke-width="2.2"/>
+                </g>
+            </g>
+`;
+
+const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
+    <path d="M -4 64 C -2 53, 6 47, 16.5 47 C 27 47, 34 53, 35.5 64 Z" fill="#4FB477"
+          stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+    
+    <circle cx="3.540000000000001" cy="29.62" r="3.105" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.7"/>
+    <circle cx="16.5" cy="28" r="13.5" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8"/>
+    <path d="M 3.0 26.65 C 1.9199999999999982 13.149999999999999, 9.75 8.830000000000002,
+             16.5 9.100000000000001 C 23.25 9.370000000000001, 31.080000000000002 13.149999999999999,
+             30.0 26.65 C 27.57 19.630000000000003, 22.17 17.47,
+             17.04 19.09 C 11.1 20.98, 6.51 20.71,
+             3.0 26.65 Z" fill="#7A5230" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M 3.2699999999999996 23.95 C 1.379999999999999 16.93, 4.890000000000001 12.610000000000001,
+             9.75 10.989999999999998 C 5.699999999999999 15.58, 3.8100000000000005 19.9,
+             3.2699999999999996 23.95 Z" fill="#5E3D23" stroke="#241F2E" stroke-width="1.5"/>
+    <ellipse cx="6.780000000000001" cy="33.67" rx="2.7" ry="1.6199999999999999" fill="#F08C7A" opacity=".45"/>
+    <ellipse cx="26.22" cy="33.67" rx="2.7" ry="1.6199999999999999" fill="#F08C7A" opacity=".45"/>
+    
+    <g class="ok"><ellipse cx="11.504999999999999" cy="28.27" rx="2.7" ry="3.375" fill="#fff" stroke="#241F2E" stroke-width="1.1"/>
+        <ellipse cx="11.504999999999999" cy="28.81" rx="1.6199999999999999" ry="2.16" fill="#4A3A2C"/>
+        <circle cx="12.45" cy="27.055" r="0.8099999999999999" fill="#fff"/><ellipse cx="21.495" cy="28.27" rx="2.7" ry="3.375" fill="#fff" stroke="#241F2E" stroke-width="1.1"/>
+        <ellipse cx="21.495" cy="28.81" rx="1.6199999999999999" ry="2.16" fill="#4A3A2C"/>
+        <circle cx="22.44" cy="27.055" r="0.8099999999999999" fill="#fff"/><path d="M 11.5 35.5 q 5 5 10 0" fill="none"
+        stroke="#241F2E" stroke-width="1.8" stroke-linecap="round"/></g>
+    <g class="ko"><path d="M 8.264999999999999 25.03 l 6.4799999999999995 6.4799999999999995 M 14.745 25.03 l -6.4799999999999995 6.4799999999999995" fill="none" stroke="#241F2E" stroke-width="2.1" stroke-linecap="round"/><path d="M 18.255000000000003 25.03 l 6.4799999999999995 6.4799999999999995 M 24.735 25.03 l -6.4799999999999995 6.4799999999999995" fill="none" stroke="#241F2E" stroke-width="2.1" stroke-linecap="round"/></g>
+    <path class="wob" d="M 11.0 36 q 1.8 -2.4 3.6 0 q 1.8 2.4 3.6 0 q 1.8 -2.4 3.4 0"
+          fill="none" stroke="#241F2E" stroke-width="1.7" stroke-linecap="round"/>
+    <g class="tongue"><path d="M 11.5 35 q 5 4 10 0" fill="none" stroke="#241F2E"
+        stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M 14.9 36 C 19.1 35.8, 20.9 38,
+                 20.1 40.6 C 19.3 43, 15.5 43,
+                 14.7 40.6 C 14.3 39.2, 14.5 37.2,
+                 14.9 36 Z" fill="#E8697F" stroke="#241F2E" stroke-width="1.4"/></g>
+
+    <path d="M 25 64 C 26 50.5, 35 44, 45 44 C 56 44, 64.5 50.5, 66 64 Z" fill="#2FA8E0"
+          stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+    
+    <circle cx="59.4" cy="26.8" r="3.45" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.7"/>
+    <circle cx="45" cy="25" r="15" fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8"/>
+    <path d="M 30 23.5 C 28.799999999999997 8.5, 37.5 3.700000000000003,
+             45 4.0 C 52.5 4.300000000000001, 61.2 8.5,
+             60 23.5 C 57.3 15.7, 51.3 13.299999999999999,
+             45.6 15.1 C 39.0 17.2, 33.9 16.9,
+             30 23.5 Z" fill="#7A5230" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M 30.3 20.5 C 28.2 12.700000000000001, 32.1 7.900000000000002,
+             37.5 6.100000000000001 C 33.0 11.2, 30.9 16.0,
+             30.3 20.5 Z" fill="#5E3D23" stroke="#241F2E" stroke-width="1.5"/>
+    <ellipse cx="34.2" cy="31.3" rx="3.0" ry="1.7999999999999998" fill="#F08C7A" opacity=".45"/>
+    <ellipse cx="55.8" cy="31.3" rx="3.0" ry="1.7999999999999998" fill="#F08C7A" opacity=".45"/>
+    <g>
+        <circle cx="39.45" cy="25.3" r="4.95" fill="none" stroke="#241F2E" stroke-width="1.8"/>
+        <circle cx="50.55" cy="25.3" r="4.95" fill="none" stroke="#241F2E" stroke-width="1.8"/>
+        <path d="M 44.400000000000006 25.3 L 45.599999999999994 25.3 M 34.5 24.8 L 30 23.3
+                 M 55.5 24.8 L 60 23.3" fill="none" stroke="#241F2E"
+              stroke-width="1.8" stroke-linecap="round"/></g>
+    <g class="ok"><ellipse cx="39.45" cy="25.3" rx="3.0" ry="3.75" fill="#fff" stroke="#241F2E" stroke-width="1.1"/>
+        <ellipse cx="39.45" cy="25.900000000000002" rx="1.7999999999999998" ry="2.4" fill="#4A3A2C"/>
+        <circle cx="40.5" cy="23.95" r="0.8999999999999999" fill="#fff"/><ellipse cx="50.55" cy="25.3" rx="3.0" ry="3.75" fill="#fff" stroke="#241F2E" stroke-width="1.1"/>
+        <ellipse cx="50.55" cy="25.900000000000002" rx="1.7999999999999998" ry="2.4" fill="#4A3A2C"/>
+        <circle cx="51.599999999999994" cy="23.95" r="0.8999999999999999" fill="#fff"/><path d="M 39.5 33 q 5.5 5.4 11 0" fill="none"
+        stroke="#241F2E" stroke-width="1.9" stroke-linecap="round"/></g>
+    <g class="ko"><path d="M 35.85 21.700000000000003 l 7.199999999999999 7.199999999999999 M 43.050000000000004 21.700000000000003 l -7.199999999999999 7.199999999999999" fill="none" stroke="#241F2E" stroke-width="2.1" stroke-linecap="round"/><path d="M 46.949999999999996 21.700000000000003 l 7.199999999999999 7.199999999999999 M 54.15 21.700000000000003 l -7.199999999999999 7.199999999999999" fill="none" stroke="#241F2E" stroke-width="2.1" stroke-linecap="round"/></g>
+    <path class="wob" d="M 39 33.5 q 2 -2.6 4 0 q 2 2.6 4 0 q 2 -2.6 3.7 0"
+          fill="none" stroke="#241F2E" stroke-width="1.8" stroke-linecap="round"/>
+    <g class="tongue"><path d="M 39.5 32.5 q 5.5 4.4 11 0" fill="none" stroke="#241F2E"
+        stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 43.2 33.6 C 47.8 33.4, 49.8 35.8,
+                 49 38.6 C 48.2 41.2, 44 41.2,
+                 43 38.6 C 42.6 37, 42.8 34.9,
+                 43.2 33.6 Z" fill="#E8697F" stroke="#241F2E" stroke-width="1.5"/></g>
+
+    <g class="hand" transform="translate(-1 -3)">
+        <path d="M 41.5 64 L 41.5 56.5 C 41.5 52.5, 45 50, 49.5 50.2 C 55 50.4, 58.5 53.6, 58.5 58 L 58.5 64 Z"
+              fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M 46.5 51 H 57.5 M 47 56 H 58 M 47 60 H 58" fill="none" stroke="#E2A98C"
+              stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M 41.8 57 C 39.6 51.5, 40.4 44.6, 44.2 44 C 47.4 43.5, 48.6 47.6, 48 51.6
+                 C 47.7 53.8, 47 55.6, 46.2 56.8 Z"
+              fill="#FFDCC0" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M 43.4 47.6 q 1.6 .6 2.2 2" fill="none" stroke="#E2A98C" stroke-width="1.1"
+              stroke-linecap="round"/></g></svg>`;
+
+const CASTS = {
+    george: {
+        pick: 'George',
+        alt: 'George, running on two blades',
+        title: 'Run George,<br>Run',
+        tag: 'Two blades, one hat, no brakes.',
+        hero: HERO_GEORGE,
+        portrait: PORTRAIT_GEORGE,
+        spin: true,                      // the dance is a pirouette
+        boost: 'blade boost, mid-air',
+        coin: { html: CAPY, w: 36, h: 27, icon: 'i-capy', noun: 'capybara', many: 'capybaras' },
+        ride: {
+            html: BIG_CAPY, mount: CAPY.replace('width="36" height="27"', 'width="150" height="112"'),
+            warn: CAPY.replace('width="36" height="27"', 'width="46" height="35"'),
+            icon: 'i-capy', key: 'RIDE!', help: 'ride the big capybara',
+        },
+        buddy: {
+            html: FUDGE, w: 48, h: 52, lift: 8, icon: 'i-fudge', name: 'Fudge',
+            key: 'FUDGE!', help: 'he takes one hit for you',
+            warn: FUDGE.slice(0, FUDGE.indexOf('</svg>') + 6)
+                       .replace('width="48" height="52"', 'width="32" height="35"'),
+            fly: `<svg width="46" height="50" viewBox="0 0 44 48">` +
+                 FUDGE.slice(FUDGE.indexOf('>') + 1, FUDGE.indexOf('</svg>')) + `</svg>`,
+        },
+        // the hat leaves without him
+        hat: `<svg viewBox="0 0 50 22" width="64">
+            <path d="M 12 10 C 14 2, 26 1, 31 6 L 33 11 Z" fill="#B5703A" stroke="#241F2E" stroke-width="2.3"/>
+            <path d="M 3 12 C 11 7, 39 6, 47 11 C 39 17, 11 17, 3 12 Z"
+                  fill="#B5703A" stroke="#241F2E" stroke-width="2.3"/></svg>`,
+    },
+    twins: {
+        pick: 'Henry &amp; Arty',
+        alt: 'Henry and Arty, running together',
+        title: 'Run Henry,<br>Run Arty',
+        tag: 'Two brothers, one sister, no brakes.',
+        hero: HERO_TWINS,
+        portrait: PORTRAIT_TWINS,
+        spin: false,                     // they hi-five instead
+        boost: 'double jump, mid-air',
+        coin: { html: ROBUX, w: 34, h: 34, icon: 'i-robux', noun: 'robux', many: 'robux' },
+        ride: {
+            html: BIG_PAD, mount: PAD, warn: PAD_MINI,
+            icon: 'i-pad', key: 'PLAY!', help: 'ride the controller',
+        },
+        buddy: {
+            html: NORA_TAG, w: 42, h: 50, lift: 8, icon: 'i-nora', name: 'Nora',
+            key: 'NORA!', help: 'she takes a hit for you',
+            warn: NORA.replace('width="42" height="50"', 'width="30" height="35"'),
+            fly: NORA,
+        },
+        // Henry's glasses go the way George's hat does
+        hat: `<svg viewBox="0 0 46 22" width="58">
+            <circle cx="12" cy="11" r="7.6" fill="none" stroke="#241F2E" stroke-width="2.6"/>
+            <circle cx="33" cy="11" r="7.6" fill="none" stroke="#241F2E" stroke-width="2.6"/>
+            <path d="M 19.6 11 H 25.4 M 4.4 11 L 1 8.6 M 40.6 11 L 44 8.6" fill="none"
+                  stroke="#241F2E" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+    },
+};
+
+const castKey = 'rgr-cast';
+const heroSvg = hero.querySelector('svg');
+const barIcon = rideBar.querySelector('.ico');
+const rowRide = document.getElementById('row-ride');
+const rowBuddy = document.getElementById('row-buddy');
+const rowBoost = document.getElementById('row-boost');
+const setCard = document.getElementById('set-card');
+let castId = 'george', CAST = CASTS.george;
+try { const c = localStorage.getItem(castKey); if (CASTS[c]) castId = c; } catch (e) { /* private mode */ }
+
+const helpRow = (icon, key, what) =>
+    `<span class="key"><svg class="ico"><use href="#${icon}"/></svg>${key}</span>` +
+    `<span class="what">${what}</span>`;
+
+function applyCast(id) {
+    if (!CASTS[id]) id = 'george';
+    castId = id; CAST = CASTS[id];
+    try { localStorage.setItem(castKey, id); } catch (e) { /* private mode */ }
+    gameEl.classList.toggle('twins', id === 'twins');
+    heroSvg.innerHTML = CAST.hero;
+    heroSvg.setAttribute('aria-label', CAST.alt);
+    mountEl.innerHTML = CAST.mount || CAST.ride.mount;
+    document.querySelectorAll('.portrait').forEach(el => { el.innerHTML = CAST.portrait; });
+    document.getElementById('title').innerHTML = CAST.title;
+    document.getElementById('tagline').textContent = CAST.tag;
+    rowBoost.innerHTML = helpRow('i-boost', 'Tap again', CAST.boost);
+    rowRide.innerHTML = helpRow(CAST.ride.icon, CAST.ride.key, CAST.ride.help);
+    rowBuddy.innerHTML = helpRow(CAST.buddy.icon, CAST.buddy.key, CAST.buddy.help);
+    barIcon.innerHTML = `<use href="#${CAST.ride.icon}"/>`;
+    document.querySelectorAll('.cast').forEach(b => b.classList.toggle('on', b.dataset.cast === id));
+    // anything already on its way keeps up with the change
+    world.things.forEach(t => {
+        if (t.kind === 'capy' || t.kind === 'ride' || t.kind === 'fudge') t.el.innerHTML = KIND(t.kind).html;
+    });
+}
+
+// the same two buttons on the start card and behind the cog
+const pickHTML = Object.entries(CASTS).map(([id, c]) =>
+    `<button class="cast" data-cast="${id}"><span class="face">${c.portrait}</span>` +
+    `<span>${c.pick}</span></button>`).join('');
+document.getElementById('pick-start').innerHTML = pickHTML;
+document.getElementById('pick-set').innerHTML = pickHTML;
+document.querySelectorAll('.cast').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    if (b.dataset.cast !== castId) { applyCast(b.dataset.cast); play('coin'); }
+}));
+
+// the cog holds the run while you decide
+const cogBtn = document.getElementById('cog');
+cogBtn.addEventListener('click', e => { e.stopPropagation(); setCard.hidden = false; world.paused = true; });
+document.getElementById('close-set').addEventListener('click', e => {
+    e.stopPropagation(); setCard.hidden = true; world.paused = false;
+});
+
+applyCast(castId);
 
 function mount() {
     world.riding = RIDE_TIME;
@@ -1415,6 +1976,7 @@ function fireJump() { if (pending) { clearTimeout(pending); pending = null; jump
 function dropJump() { clearTimeout(pending); pending = null; }
 
 function gestureStart(x, y) {
+    if (!setCard.hidden) return;
     gx = x; gy = y; gmoved = crept = waited = false;
     armJump(JUMP_WAIT);
 }
@@ -1436,7 +1998,7 @@ function gestureEnd() {
 // touch first, and held onto with preventDefault, so the browser cannot take the
 // swipe away halfway through; the pointer events are for a mouse or a trackpad
 addEventListener('touchstart', e => {
-    if (e.target.closest('.btn, #mute')) return;
+    if (e.target.closest('.btn, #mute, #cog, .cast')) return;
     usingTouch = true;
     e.preventDefault();
     gestureStart(e.touches[0].clientX, e.touches[0].clientY);
@@ -1451,7 +2013,7 @@ addEventListener('touchcancel', gestureEnd);
 // pointerdown arrives before touchstart, so a finger is waved off by its own type
 addEventListener('pointerdown', e => {
     if (e.pointerType === 'touch') { usingTouch = true; return; }
-    if (usingTouch || e.target.closest('.btn, #mute')) return;
+    if (usingTouch || e.target.closest('.btn, #mute, #cog, .cast')) return;
     gestureStart(e.clientX, e.clientY);
 });
 addEventListener('pointermove', e => {
@@ -1477,7 +2039,7 @@ function frame(now) {
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
     last = now;
-    if (!world.running) return;
+    if (!world.running || world.paused) return;
 
     world.t += dt;
     world.speed = Math.min(SPEED_MAX, world.speed + SPEED_RAMP * dt);
@@ -1504,7 +2066,7 @@ function frame(now) {
     world.slideT = Math.max(0, Math.min(1, world.slideT + dt / (down ? SLIDE_IN : -SLIDE_OUT)));
     const s = world.slideT;
     // the dance is a pirouette: a turn on the spot, about his own axis
-    const spin = world.move === 'dance' && world.riding === 0
+    const spin = world.move === 'dance' && world.riding === 0 && CAST.spin
         ? Math.cos(2 * Math.PI * (1 - world.moveT / MOVE_DUR)) : 1;
     hero.style.transform = `translate(${RIDE_FWD * world.rideT}px, ${-(world.y + RIDE_LIFT * world.rideT)}px)`
         + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '')
@@ -1618,16 +2180,16 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 /* ---- starting, and stopping ---------------------------------------- */
-// Fudge is a soft toy and a spare life: the first hit lands on him
+// the one tagging along is a spare life: the first hit lands on them
 function saved() {
     world.carry = false;
     world.safeT = SAFE_TIME;
     play('save');
-    gain('Fudge!', true);
+    gain(CAST.buddy.name + '!', true);
     const r = hero.getBoundingClientRect();
     const d = document.createElement('div');
     d.id = 'fudge-fly';
-    d.innerHTML = `<svg width="46" height="50" viewBox="0 0 44 48">${FUDGE.slice(FUDGE.indexOf('>') + 1, FUDGE.indexOf('</svg>'))}</svg>`;
+    d.innerHTML = CAST.buddy.fly;
     d.style.left = `${r.left + 30}px`;
     d.style.top = `${r.top + 40}px`;
     gameEl.appendChild(d);
@@ -1679,15 +2241,12 @@ function crash(kind) {
     flash.animate([{ opacity: .85 }, { opacity: 0 }], { duration: 320 });
     hero.classList.add('hurt');
 
-    // the hat carries on without him — and off his head
+    // the hat — or the glasses — carries on without him
     hero.classList.add('lost');
     const r = hero.getBoundingClientRect();
     const hat = document.createElement('div');
     hat.id = 'hat-fly';
-    hat.innerHTML = `<svg viewBox="0 0 50 22" width="64">
-        <path d="M 12 10 C 14 2, 26 1, 31 6 L 33 11 Z" fill="#B5703A" stroke="#241F2E" stroke-width="2.3"/>
-        <path d="M 3 12 C 11 7, 39 6, 47 11 C 39 17, 11 17, 3 12 Z"
-              fill="#B5703A" stroke="#241F2E" stroke-width="2.3"/></svg>`;
+    hat.innerHTML = CAST.hat;
     hat.style.left = `${r.left + 10}px`;
     hat.style.top = `${r.top}px`;
     gameEl.appendChild(hat);
@@ -1713,7 +2272,8 @@ function crash(kind) {
     document.getElementById('over-beat').textContent = record ? `beat ${fmt(beaten)}` : '';
     document.getElementById('over-score').textContent = fmt(score);
     document.getElementById('over-sub').textContent =
-        `${fmt(world.dist)} m · ${fmt(world.coins)} capybara${world.coins === 1 ? '' : 's'}`;
+        `${fmt(world.dist)} m · ${fmt(world.coins)} ` +
+        (world.coins === 1 ? CAST.coin.noun : CAST.coin.many);
     document.getElementById('over-best').textContent = fmt(best);
     document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
@@ -1738,7 +2298,7 @@ function begin() {
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     slideLeft: 0, dustT: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
-        spawnIn: 520, things: [], t: 0
+        spawnIn: 520, things: [], t: 0, paused: false
     });
     hero.className = 'run';
     hero.classList.remove('hurt', 'lost');
