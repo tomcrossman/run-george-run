@@ -55,9 +55,24 @@ body {
 #sky { inset: 0; background: linear-gradient(#bcdcf7 0%, #d7eaf9 55%, #eaf3fb 100%); }
 #sun {
     position: absolute; right: 12%; top: 9%;
-    width: 86px; height: 86px; border-radius: 50%;
+    width: 86px; height: 86px; border-radius: 50%; overflow: hidden;
     background: #ffe9a8; border: 4px solid var(--ink);
     box-shadow: 0 0 0 14px rgba(255,233,168,.35);
+}
+/* the bite out of the moon, which is nothing at midday */
+#sun i { position: absolute; inset: -10%; border-radius: 50%;
+         background: #16224d; opacity: 0; transform: translate(-30%, -18%); }
+
+#stars { position: absolute; inset: 0 0 24% 0; opacity: 0; pointer-events: none; }
+#stars b { position: absolute; display: block; border-radius: 50%; background: #fffdf8;
+           animation: twinkle 3s ease-in-out infinite alternate; }
+@keyframes twinkle { from { opacity: .45; } to { opacity: 1; } }
+
+/* one veil over the whole world, so everything darkens together */
+#night {
+    position: absolute; inset: 0; z-index: 7; pointer-events: none; opacity: 0;
+    background: linear-gradient(#0a1030 0%, #16224d 58%, #232f57 100%);
+    mix-blend-mode: multiply;
 }
 
 /* clouds and hills repeat, so each layer is one wide strip drawn twice */
@@ -449,7 +464,9 @@ body {
 
 <div id="game">
     <div class="layer" id="sky"></div>
-    <div id="sun"></div>
+    <div id="sun"><i></i></div>
+    <div id="stars"></div>
+    <div id="night"></div>
 
     <div class="layer" id="clouds"><div class="strip" id="clouds-strip"></div></div>
     <div class="layer" id="hills"><div class="strip" id="hills-strip"></div></div>
@@ -616,7 +633,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v20';
+const APP_VERSION = 'v21';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -766,6 +783,7 @@ const MELODY = [                                 // the hook, one slot per eight
 let musicTimer = null, step = 0, nextAt = 0;
 function musicStep(n, t, d) {
     const bar = CHORDS[(n >> 3) % 4], beat = n % 8;
+    if (world.night > .55) return nightStep(bar, beat, n, t);
     // kick on one and three, with a lift into every other bar
     if (beat === 0 || beat === 4 || (beat === 7 && (n >> 3) % 2 === 1)) kick(t);
     if (beat === 2 || beat === 6) snare(t);
@@ -781,6 +799,17 @@ function musicStep(n, t, d) {
         mTone(t, NOTE(MELODY[n]), .17, 'triangle', .035, 3000);
     }
 }
+// after dark the same four bars go quiet and low: a soft pulse instead of the
+// backbeat, sine bass an octave down, the hook on a triangle with the edge off
+function nightStep(bar, beat, n, t) {
+    if (beat === 0 || beat === 4) kick(t, .3);
+    if (beat === 6) snare(t, .1);
+    if (beat % 2 === 1) tick(t, .035);
+    mTone(t, NOTE(bar.root + BASS_FIG[beat] - 24), .3, 'sine', .3, 300);
+    if (beat % 4 === 1)
+        bar.notes.forEach(m => mTone(t, NOTE(m), .42, 'triangle', .035, 1300));
+    if (MELODY[n]) mTone(t, NOTE(MELODY[n] - 12), .38, 'triangle', .06, 1700);
+}
 function mTone(t, freq, dur, type, vol, cut) {
     const o = audioCtx.createOscillator(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
     o.type = type; o.frequency.setValueAtTime(freq, t);
@@ -791,12 +820,12 @@ function mTone(t, freq, dur, type, vol, cut) {
     o.connect(f); f.connect(g); g.connect(musicGain);
     o.start(t); o.stop(t + dur + .02);
 }
-function kick(t) {
+function kick(t, vol = .45) {
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.type = 'sine';
     o.frequency.setValueAtTime(150, t);
     o.frequency.exponentialRampToValueAtTime(48, t + .09);
-    g.gain.setValueAtTime(.45, t);
+    g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + .15);
     o.connect(g); g.connect(musicGain);
     o.start(t); o.stop(t + .17);
@@ -810,8 +839,8 @@ function noiseHit(t, { hp, dur, vol }) {
     n.connect(f); f.connect(g); g.connect(musicGain);
     n.start(t); n.stop(t + dur + .02);
 }
-const snare = (t) => { noiseHit(t, { hp: 1500, dur: .13, vol: .2 });
-                       mTone(t, 190, .07, 'triangle', .12, 900); };
+const snare = (t, vol = .2) => { noiseHit(t, { hp: 1500, dur: .13, vol });
+                                mTone(t, 190, .07, 'triangle', vol * .6, 900); };
 const tick = (t, vol) => noiseHit(t, { hp: 7200, dur: .04, vol });
 
 function startMusic() {
@@ -850,6 +879,7 @@ const FUDGE_PTS = 175;           // he is worth a good chunk, and then a hit
 const FUDGE_FIRST = 420, FUDGE_EVERY = 950;
 const SAFE_TIME = 1.2;           // how long he is untouchable after Fudge takes a hit
 const DISMOUNT_GRACE = 1.1;      // and how long he gets to find his feet after a ride
+const DAY_LEN = 1500;            // metres from noon to noon
 const PER_METRE = 1;             // the base earner, so a long run still counts
 const CAPY_PTS = 25, MOVE_PTS = 50, SMASH_PTS = 75;
 const COMBO_MAX = 5, COMBO_HOLD = 4;        // how high it stacks, and how long it lasts
@@ -864,7 +894,7 @@ const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
-    score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
+    score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST, night: 0,
     spawnIn: 420, things: [], t: 0
 };
 
@@ -1039,6 +1069,21 @@ function jump() {
         hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
     }
 }
+// a handful of stars, scattered once and left to twinkle
+const starsEl = document.getElementById('stars'), nightEl = document.getElementById('night');
+const sunEl = document.getElementById('sun'), moonBite = sunEl.firstElementChild;
+for (let i = 0; i < 54; i++) {
+    const st = document.createElement('b');
+    const r = 1 + Math.random() * 2.2;
+    st.style.cssText = `left:${Math.random() * 100}%;top:${Math.random() * 78}%;` +
+                       `width:${r}px;height:${r}px;animation-delay:${Math.random() * 3}s`;
+    starsEl.appendChild(st);
+}
+const mix = (a, b, t) => '#' + [0, 2, 4].map(i => {
+    const av = parseInt(a.substr(i + 1, 2), 16), bv = parseInt(b.substr(i + 1, 2), 16);
+    return Math.round(av + (bv - av) * t).toString(16).padStart(2, '0');
+}).join('');
+
 const mountEl = document.getElementById('mount');
 const rideBar = document.getElementById('ridebar');
 const rideFill = rideBar.querySelector('i');
@@ -1233,6 +1278,14 @@ function frame(now) {
 
     world.t += dt;
     world.speed = Math.min(SPEED_MAX, world.speed + SPEED_RAMP * dt);
+    // noon to midnight and back, on the metres rather than the clock
+    world.night = (1 - Math.cos(world.dist / DAY_LEN * Math.PI * 2)) / 2;
+    nightEl.style.opacity = world.night * .82;
+    starsEl.style.opacity = Math.max(0, world.night * 1.6 - .5);
+    sunEl.style.background = mix('#ffe9a8', '#e6ecfb', world.night);
+    sunEl.style.boxShadow = `0 0 0 ${14 - world.night * 8}px rgba(255,233,168,${.35 - world.night * .28})`;
+    moonBite.style.opacity = world.night;
+
     const metres = world.speed * dt / 12;
     world.dist += metres;
     world.score += metres * PER_METRE * world.mult * (world.riding > 0 ? 2 : 1);
@@ -1474,7 +1527,7 @@ function begin() {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
-    score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
+    score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST, night: 0,
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
