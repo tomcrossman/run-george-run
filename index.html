@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Run George, Run</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#cfe4f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Run George, Run">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Run George, Run — a side-scrolling dash on two blades. Tap to jump, tap again to boost, hold down to slide.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700;900&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   TOKENS — the Fingaz house style, moved outdoors
+   ============================================================ */
+:root {
+    --ink:        #241F2E;
+    --sky-top:    #bcdcf7;
+    --sky-low:    #eaf3fb;
+    --hill-far:   #a9c7e4;
+    --hill-mid:   #86b0d6;
+    --ground:     #6b8f5a;
+    --ground-dk:  #547446;
+    --earth:      #8a6a4a;
+    --panel:      #fffdf8;
+    --gold:       #f4b32c;
+    --blue:       #2fa8e0;
+    --danger:     #ef4444;
+    --pop:        4px 4px 0 var(--ink);
+    --font:         "Comic Neue", "Comic Sans MS", system-ui, sans-serif;
+    --font-display: "Bangers", "Comic Sans MS", Impact, system-ui, sans-serif;
+}
+* { box-sizing: border-box; touch-action: manipulation; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+    margin: 0; overflow: hidden;
+    font-family: var(--font); color: var(--ink);
+    background: var(--sky-low);
+}
+
+/* ============================================================
+   THE WORLD — layers that scroll at their own speed
+   ============================================================ */
+#game { position: fixed; inset: 0; overflow: hidden; }
+
+.layer { position: absolute; left: 0; width: 100%; will-change: transform; }
+
+#sky { inset: 0; background: linear-gradient(#bcdcf7 0%, #d7eaf9 55%, #eaf3fb 100%); }
+#sun {
+    position: absolute; right: 12%; top: 9%;
+    width: 86px; height: 86px; border-radius: 50%;
+    background: #ffe9a8; border: 4px solid var(--ink);
+    box-shadow: 0 0 0 14px rgba(255,233,168,.35);
+}
+
+/* clouds and hills repeat, so each layer is one wide strip drawn twice */
+.strip { position: absolute; top: 0; height: 100%; width: 200%; display: flex; }
+.strip > svg { width: 50%; height: 100%; display: block; flex: none; }
+
+#clouds { bottom: 46%; height: 24%; opacity: .95; }
+#hills  { bottom: 24%; height: 26%; }
+#trees  { bottom: 24%; height: 20%; }
+
+#ground {
+    bottom: 0; height: 24%;
+    background:
+        linear-gradient(var(--ground) 0 14%, var(--ground-dk) 14% 22%, var(--earth) 22% 100%);
+    border-top: 4px solid var(--ink);
+}
+/* the ground's stripes scroll, so the speed is felt underfoot */
+#ground::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(90deg,
+        rgba(36,31,46,.13) 0 3px, transparent 3px 46px);
+    background-size: 46px 100%;
+}
+
+/* ============================================================
+   GEORGE
+   ============================================================ */
+#hero {
+    position: absolute; left: 15%; bottom: 24%;
+    width: 132px; height: 168px;
+    transform-origin: 50% 100%;
+    z-index: 5;
+}
+#hero svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.leg-a, .leg-b, .arm-a, .arm-b, .torso { transform-box: fill-box; }
+.leg-a, .leg-b { transform-origin: 46% 4%; }
+.arm-a, .arm-b { transform-origin: 50% 6%; }
+
+/* running: the blades swing, the arms counter, the body bobs */
+#hero.run .leg-a { animation: swingA var(--cyc) ease-in-out infinite; }
+#hero.run .leg-b { animation: swingB var(--cyc) ease-in-out infinite; }
+#hero.run .arm-a { animation: armA var(--cyc) ease-in-out infinite; }
+#hero.run .arm-b { animation: armB var(--cyc) ease-in-out infinite; }
+#hero.run .torso { animation: bob calc(var(--cyc) / 2) ease-in-out infinite; }
+@keyframes swingA { 0%,100% { transform: rotate(32deg); } 50% { transform: rotate(-26deg); } }
+@keyframes swingB { 0%,100% { transform: rotate(-26deg); } 50% { transform: rotate(32deg); } }
+@keyframes armA   { 0%,100% { transform: rotate(-34deg); } 50% { transform: rotate(38deg); } }
+@keyframes armB   { 0%,100% { transform: rotate(38deg); } 50% { transform: rotate(-34deg); } }
+@keyframes bob    { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+/* in the air: blades tucked, one arm up */
+#hero.jump .leg-a { transform: rotate(-38deg); }
+#hero.jump .leg-b { transform: rotate(14deg); }
+#hero.jump .arm-a { transform: rotate(-70deg); }
+#hero.jump .arm-b { transform: rotate(30deg); }
+#hero.fall .leg-a { transform: rotate(24deg); }
+#hero.fall .leg-b { transform: rotate(-16deg); }
+#hero.fall .arm-a { transform: rotate(-30deg); }
+#hero.fall .arm-b { transform: rotate(52deg); }
+
+/* sliding: folded forward over the blades */
+#hero.slide { transform: translateY(14px) rotate(-62deg) scale(.96); }
+#hero.slide .leg-a { transform: rotate(52deg); }
+#hero.slide .leg-b { transform: rotate(36deg); }
+
+#hero.hurt { animation: hurt .5s steps(2) 3; }
+@keyframes hurt { 0% { opacity: 1; } 50% { opacity: .25; } 100% { opacity: 1; } }
+
+/* the hat leaves when he does */
+#hat-fly { position: absolute; z-index: 6; width: 64px; pointer-events: none; }
+
+/* ============================================================
+   THINGS IN THE WAY, AND THINGS WORTH HAVING
+   ============================================================ */
+.thing { position: absolute; bottom: 24%; z-index: 4; will-change: transform; }
+.thing svg { display: block; overflow: visible; }
+.coin { z-index: 3; }
+.coin svg { animation: spin 1.1s linear infinite; }
+@keyframes spin { 0% { transform: scaleX(1); } 50% { transform: scaleX(.25); } 100% { transform: scaleX(1); } }
+.pop { animation: coinPop .35s ease-out forwards; }
+@keyframes coinPop { to { transform: translateY(-40px) scale(1.5); opacity: 0; } }
+
+/* ============================================================
+   SPEED, DUST AND IMPACT
+   ============================================================ */
+#speedlines {
+    position: absolute; inset: 0; z-index: 7; pointer-events: none; opacity: 0;
+    background: repeating-linear-gradient(90deg,
+        rgba(255,255,255,.75) 0 2px, transparent 2px 120px);
+    transition: opacity .2s;
+}
+#flash {
+    position: absolute; inset: 0; z-index: 9; pointer-events: none;
+    background: #fff; opacity: 0;
+}
+.dust {
+    position: absolute; bottom: 24%; z-index: 4; pointer-events: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(255,255,255,.85); border: 2px solid var(--ink);
+    animation: puff .45s ease-out forwards;
+}
+@keyframes puff {
+    from { transform: translate(0,0) scale(.5); opacity: .9; }
+    to   { transform: translate(-46px,-24px) scale(1.5); opacity: 0; }
+}
+
+/* ============================================================
+   HUD
+   ============================================================ */
+#hud {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 8;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 12px 14px; pointer-events: none;
+}
+.plate {
+    font-family: var(--font-display); font-size: 26px; letter-spacing: .02em;
+    padding: 4px 12px 2px;
+    background: var(--panel); border: 3px solid var(--ink); border-radius: 13px;
+    box-shadow: var(--pop);
+}
+.plate .cap { display: block; font-family: var(--font); font-size: 8.5px; font-weight: 900;
+              letter-spacing: .18em; opacity: .55; margin-bottom: -3px; }
+#coins { color: #b5791a; }
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+    position: absolute; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 22px;
+    background: rgba(24,20,32,.55); backdrop-filter: blur(3px);
+}
+.card[hidden] { display: none; }
+.card .inner {
+    width: 100%; max-width: 330px; padding: 20px;
+    background: var(--panel); border: 3.5px solid var(--ink); border-radius: 22px;
+    box-shadow: 8px 8px 0 var(--ink); text-align: center;
+}
+.card h1 {
+    margin: 0; font-family: var(--font-display); font-weight: 400; line-height: .92;
+    font-size: 48px; letter-spacing: .01em;
+}
+.card h2 {
+    margin: 0 0 6px; font-family: var(--font-display); font-weight: 400;
+    font-size: 34px; letter-spacing: .02em;
+}
+.card p { margin: 6px 0 0; font-size: 12.5px; font-weight: 700; line-height: 1.5; opacity: .75; }
+.card .keys { margin-top: 12px; display: grid; gap: 7px; }
+.row {
+    display: flex; align-items: center; gap: 9px; justify-content: center;
+    font-size: 11.5px; font-weight: 800;
+}
+.key {
+    min-width: 62px; padding: 5px 8px;
+    border: 2.5px solid var(--ink); border-radius: 9px; background: #eef4fb;
+    font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+}
+.btn {
+    margin-top: 16px; width: 100%;
+    font-family: var(--font-display); font-size: 24px; font-weight: 400; letter-spacing: .03em;
+    padding: 12px; color: var(--ink);
+    background: var(--gold); border: 3px solid var(--ink); border-radius: 15px;
+    box-shadow: var(--pop); cursor: pointer;
+}
+.btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
+.tally { display: flex; justify-content: center; gap: 18px; margin: 10px 0 2px; }
+.tally div { font-family: var(--font-display); font-size: 34px; line-height: 1; }
+.tally span { display: block; font-family: var(--font); font-size: 9px; font-weight: 900;
+              letter-spacing: .16em; opacity: .55; }
+.best { color: var(--gold); }
+#version { position: absolute; bottom: 8px; right: 10px; z-index: 8;
+           font-size: 9px; font-weight: 800; letter-spacing: .1em; opacity: .35; }
+</style>
+</head>
+<body>
+
+<div id="game">
+    <div class="layer" id="sky"></div>
+    <div id="sun"></div>
+
+    <div class="layer" id="clouds"><div class="strip" id="clouds-strip"></div></div>
+    <div class="layer" id="hills"><div class="strip" id="hills-strip"></div></div>
+    <div class="layer" id="trees"><div class="strip" id="trees-strip"></div></div>
+    <div class="layer" id="ground"></div>
+
+    <div id="hero" class="run">
+        <svg viewBox="0 0 104 132" aria-label="George, running on two blades">
+            <defs>
+                <!-- one blade, used four times: socket at the top, taper to the toe -->
+                <g id="blade">
+                    <path d="M -3.6 0 L 3.6 0 C 8.6 8, 9 17, 2.8 24 C -0.6 27.6, -5 30.4, -9.6 32
+                             L -12 28 C -7.4 26.2, -3.6 23.6, -1.2 19.6 C 1.2 14.6, 0.6 7, -3.6 0 Z"
+                          fill="#3C4254" stroke="#241F2E" stroke-width="2.3" stroke-linejoin="round"/>
+                    <path d="M 1.6 4 C 5.2 10.5, 5 17.5, 1 22" fill="none"
+                          stroke="#7E88A4" stroke-width="1.7" stroke-linecap="round"/>
+                </g>
+            </defs>
+
+            <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
+                <g class="leg-b" opacity=".82">
+                    <path d="M 50 78 L 47 95" stroke="#F0B892" stroke-width="10"/>
+                    <rect x="41.5" y="93" width="11" height="9" rx="3" fill="#2A3040" stroke-width="2.2"/>
+                    <g transform="translate(47,101)"><use href="#blade"/></g>
+                </g>
+                <g class="arm-b" opacity=".82">
+                    <path d="M 54 50 L 47 60 L 52 68" fill="none" stroke="#F0B892" stroke-width="7.5"/>
+                </g>
+
+                <g class="torso">
+                    <path d="M 44 66 L 60 66 L 58 80 L 46 80 Z" fill="#1C82B4" stroke-width="2.4"/>
+                    <path d="M 45 42 C 44 36, 62 36, 61 42 L 62 68 L 44 68 Z" fill="#2FA8E0" stroke-width="2.4"/>
+                    <path d="M 47 44 L 48 66" stroke="#1C82B4" stroke-width="4" opacity=".5"/>
+                    <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
+                             C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
+                          fill="#F2C75C" stroke-width="2.2"/>
+                    <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
+                    <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
+                    <path d="M 61 34.5 q 3.4 2.4 6 -.6" fill="none" stroke-width="1.9"/>
+                    <g id="hero-hat">
+                        <path d="M 48 17 C 50 8, 62 6, 68 12 L 70 18 Z" fill="#B5703A" stroke-width="2.3"/>
+                        <path d="M 38 19.5 C 46 14.5, 74 13.5, 82 19 C 74 24, 46 24.5, 38 19.5 Z"
+                              fill="#B5703A" stroke-width="2.3"/>
+                        <path d="M 44 19 C 52 16, 74 15.5, 79 18.5" fill="none"
+                              stroke="#D69B5F" stroke-width="1.5"/>
+                    </g>
+                </g>
+
+                <g class="arm-a"><path d="M 58 50 L 67 58 L 63 67" fill="none" stroke="#FFDCC0" stroke-width="8"/></g>
+                <g class="leg-a">
+                    <path d="M 55 78 L 58 95" stroke="#FFDCC0" stroke-width="10.5"/>
+                    <rect x="52.5" y="93" width="11" height="9" rx="3" fill="#39415A" stroke-width="2.2"/>
+                    <g transform="translate(58,101)"><use href="#blade"/></g>
+                </g>
+            </g>
+        </svg>
+    </div>
+
+    <div id="speedlines"></div>
+    <div id="flash"></div>
+
+    <div id="hud">
+        <div class="plate"><span class="cap">Metres</span><span id="dist">0</span></div>
+        <div class="plate" id="coins"><span class="cap">Bolts</span><span id="coin-count">0</span></div>
+    </div>
+
+    <div class="card" id="start-card">
+        <div class="inner">
+            <h1>Run George,<br>Run</h1>
+            <p>Two blades, one hat, no brakes.</p>
+            <div class="keys">
+                <div class="row"><span class="key">Tap</span> jump — hold for a bigger one</div>
+                <div class="row"><span class="key">Tap again</span> blade boost, mid-air</div>
+                <div class="row"><span class="key">Swipe down</span> slide under it</div>
+            </div>
+            <button class="btn" id="go">Run!</button>
+        </div>
+    </div>
+
+    <div class="card" id="over-card" hidden>
+        <div class="inner">
+            <h2 id="over-title">Ouch!</h2>
+            <p id="over-line">A crate got in the way.</p>
+            <div class="tally">
+                <div><span>Metres</span><span id="over-dist">0</span></div>
+                <div><span>Bolts</span><span id="over-coins">0</span></div>
+                <div class="best"><span>Best</span><span id="over-best">0</span></div>
+            </div>
+            <button class="btn" id="again">Again!</button>
+        </div>
+    </div>
+
+    <div id="version">v1</div>
+</div>
+
+<script>
+const APP_VERSION = 'v1';
+document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
+
+/* ============================================================
+   BACKDROP — three strips, each drawn twice so it can loop
+   ============================================================ */
+function cloudsSVG() {
+    let s = '<svg viewBox="0 0 800 200" preserveAspectRatio="none">';
+    const clusters = [[70, 118], [300, 138], [545, 108], [700, 132]];
+    clusters.forEach(([x, y]) => {
+        s += `<g fill="#ffffff" opacity=".95">
+            <ellipse cx="${x}" cy="${y}" rx="62" ry="30"/>
+            <ellipse cx="${x - 38}" cy="${y + 10}" rx="40" ry="21"/>
+            <ellipse cx="${x + 40}" cy="${y + 8}" rx="44" ry="23"/>
+            <ellipse cx="${x + 8}" cy="${y - 18}" rx="34" ry="22"/></g>`;
+    });
+    [[180, 52], [210, 40], [610, 46]].forEach(([x, y]) =>
+        s += `<path d="M ${x} ${y} q 9 -8 18 0 q 9 -8 18 0" fill="none" stroke="#6f8ba8"
+                    stroke-width="3.5" stroke-linecap="round" opacity=".5"/>`);
+    return s + '</svg>';
+}
+function hillsSVG() {
+    return `<svg viewBox="0 0 800 200" preserveAspectRatio="none">
+        <path d="M 0 200 L 0 120 C 80 60, 150 60, 220 120 C 280 80, 340 74, 400 122
+                 C 470 56, 560 58, 640 126 C 700 90, 750 96, 800 124 L 800 200 Z"
+              fill="#a9c7e4"/>
+        <path d="M 0 200 L 0 160 C 90 116, 170 122, 250 160 C 330 120, 420 118, 500 158
+                 C 590 122, 680 126, 800 162 L 800 200 Z" fill="#86b0d6"/>
+    </svg>`;
+}
+/* a treeline of simple pines — cheap, and it sells the speed */
+function treesSVG() {
+    let s = '<svg viewBox="0 0 800 200" preserveAspectRatio="none">';
+    for (let i = 0; i < 12; i++) {
+        const x = 20 + i * 68 + (i % 3) * 9;
+        const h = 96 + (i % 4) * 22;
+        s += `<path d="M ${x} 200 L ${x} ${200 - h * .28}" stroke="#4d6b57" stroke-width="9"/>
+              <path d="M ${x - 30} ${200 - h * .22} L ${x} ${200 - h} L ${x + 30} ${200 - h * .22} Z"
+                    fill="#5c8163"/>
+              <path d="M ${x - 24} ${200 - h * .45} L ${x} ${200 - h * 1.05} L ${x + 24} ${200 - h * .45} Z"
+                    fill="#6b9470"/>`;
+    }
+    return s + '</svg>';
+}
+[['clouds-strip', cloudsSVG()], ['hills-strip', hillsSVG()], ['trees-strip', treesSVG()]]
+    .forEach(([id, svg]) => { document.getElementById(id).innerHTML = svg + svg; });
+
+/* ============================================================
+   SOUND — the Fingaz engine, slimmed to what a runner needs
+   ============================================================ */
+const AC = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null, master = null, noiseBuf = null, musicGain = null;
+let soundOn = true;
+
+function audioNow() {
+    if (!audioCtx) {
+        audioCtx = new AC();
+        master = audioCtx.createGain();
+        master.gain.value = .9;
+        master.connect(audioCtx.destination);
+        const len = Math.floor(audioCtx.sampleRate * 1.1);
+        noiseBuf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+        const d = noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    return audioCtx.currentTime;
+}
+function tone(t0, { freq, to, dur = .18, type = 'square', vol = .18, at = 0 }) {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain(), s = t0 + at;
+    o.type = type;
+    o.frequency.setValueAtTime(freq, s);
+    if (to) o.frequency.exponentialRampToValueAtTime(Math.max(1, to), s + dur);
+    g.gain.setValueAtTime(.0001, s);
+    g.gain.exponentialRampToValueAtTime(vol, s + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, s + dur);
+    o.connect(g); g.connect(master);
+    o.start(s); o.stop(s + dur + .02);
+}
+function hiss(t0, { dur = .2, from = 2200, to = 600, vol = .25, at = 0 }) {
+    const n = audioCtx.createBufferSource(), f = audioCtx.createBiquadFilter(),
+          g = audioCtx.createGain(), s = t0 + at;
+    n.buffer = noiseBuf; n.loop = true;
+    f.type = 'bandpass'; f.Q.value = 1.1;
+    f.frequency.setValueAtTime(from, s);
+    f.frequency.exponentialRampToValueAtTime(Math.max(60, to), s + dur);
+    g.gain.setValueAtTime(vol, s);
+    g.gain.exponentialRampToValueAtTime(.0001, s + dur);
+    n.connect(f); f.connect(g); g.connect(master);
+    n.start(s); n.stop(s + dur + .02);
+}
+const SFX = {
+    jump:  t => { tone(t, { freq: 340, to: 760, dur: .16, type: 'triangle', vol: .22 });
+                  hiss(t, { dur: .12, from: 1800, to: 900, vol: .12 }); },
+    boost: t => { tone(t, { freq: 520, to: 1180, dur: .2, type: 'square', vol: .2 });
+                  tone(t, { freq: 780, to: 1560, dur: .16, type: 'triangle', vol: .12, at: .04 });
+                  hiss(t, { dur: .18, from: 2600, to: 1200, vol: .16 }); },
+    land:  t => { tone(t, { freq: 180, to: 90, dur: .12, type: 'sine', vol: .22 });
+                  hiss(t, { dur: .1, from: 900, to: 300, vol: .12 }); },
+    slide: t => hiss(t, { dur: .3, from: 1400, to: 400, vol: .2 }),
+    coin:  t => { tone(t, { freq: 980, dur: .08, type: 'square', vol: .16 });
+                  tone(t, { freq: 1480, dur: .12, type: 'square', vol: .13, at: .07 }); },
+    hit:   t => { tone(t, { freq: 240, to: 60, dur: .4, type: 'sawtooth', vol: .28 });
+                  hiss(t, { dur: .35, from: 1200, to: 120, vol: .22 }); },
+};
+function play(name) {
+    if (!soundOn) return;
+    try { SFX[name](audioNow()); } catch (e) { /* no audio here, never mind */ }
+}
+
+/* a short driving loop, scheduled a bar ahead like the Fingaz bed */
+const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
+const BASS = [40, 40, 45, 45, 43, 43, 38, 38];
+const LEAD = { 0: 64, 3: 67, 6: 71, 8: 72, 11: 69, 14: 67 };
+let musicTimer = null, step = 0, nextAt = 0;
+function musicStep(n, t) {
+    const bar = BASS[Math.floor(n / 2) % BASS.length];
+    if (n % 2 === 0) mTone(t, NOTE(bar), .18, 'triangle', .3, 420);
+    if (n % 4 === 0) kick(t);
+    if (LEAD[n % 16] !== undefined) mTone(t, NOTE(LEAD[n % 16] + 12), .16, 'square', .055, 2600);
+}
+function mTone(t, freq, dur, type, vol, cut) {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    f.type = 'lowpass'; f.frequency.value = cut;
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(f); f.connect(g); g.connect(musicGain);
+    o.start(t); o.stop(t + dur + .02);
+}
+function kick(t) {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(140, t);
+    o.frequency.exponentialRampToValueAtTime(46, t + .1);
+    g.gain.setValueAtTime(.45, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .16);
+    o.connect(g); g.connect(musicGain);
+    o.start(t); o.stop(t + .18);
+}
+function startMusic() {
+    if (!soundOn || musicTimer) return;
+    audioNow();
+    if (!musicGain) { musicGain = audioCtx.createGain(); musicGain.gain.value = .1; musicGain.connect(master); }
+    nextAt = audioCtx.currentTime + .1; step = 0;
+    musicTimer = setInterval(() => {
+        if (!audioCtx) return;
+        // the bed speeds up with the run, so the pace is audible
+        const dur = 60 / (132 + (world.speed - SPEED_MIN) * .08) / 4;
+        while (nextAt < audioCtx.currentTime + .2) {
+            musicStep(step, nextAt);
+            nextAt += dur * 2;
+            step = (step + 1) % 16;
+        }
+    }, 40);
+}
+function stopMusic() { clearInterval(musicTimer); musicTimer = null; }
+
+/* ============================================================
+   THE RUN
+   ============================================================ */
+const SPEED_MIN = 340, SPEED_MAX = 720, SPEED_RAMP = 11;   // px/s, and px/s per second
+const GRAVITY = 2400, JUMP_V = 830, BOOST_V = 720;
+const HOLD_LIFT = 1250;          // while the jump is held, gravity is fought
+const HOLD_MAX = .22;            // for this long at most
+
+const hero = document.getElementById('hero');
+const gameEl = document.getElementById('game');
+
+const world = {
+    running: false, speed: SPEED_MIN, dist: 0, coins: 0,
+    y: 0, vy: 0, jumps: 0, held: 0, holding: false, sliding: false,
+    spawnIn: 420, things: [], t: 0
+};
+
+const bestKey = 'rgr-best';
+let best = 0;
+try { best = parseInt(localStorage.getItem(bestKey) || '0', 10) || 0; } catch (e) { best = 0; }
+
+const groundTop = () => gameEl.clientHeight * 0.24;
+const heroBox = () => {
+    // a forgiving box: narrower than the art, and much shorter when sliding
+    const r = hero.getBoundingClientRect();
+    const inset = r.width * 0.3;
+    return world.sliding
+        ? { x: r.left + inset * .6, y: r.bottom - r.height * .42, w: r.width - inset * 1.2, h: r.height * .42 }
+        : { x: r.left + inset, y: r.top + r.height * .12, w: r.width - inset * 2, h: r.height * .88 };
+};
+
+/* ---- the things that come at you ---------------------------------- */
+const CRATE = `<svg width="66" height="66" viewBox="0 0 54 54">
+    <rect x="3" y="3" width="48" height="48" rx="6" fill="#b5793a" stroke="#241F2E" stroke-width="4"/>
+    <path d="M 3 27 H 51 M 27 3 V 51" stroke="#8a5a28" stroke-width="4"/>
+    <path d="M 10 10 L 44 44 M 44 10 L 10 44" stroke="#8a5a28" stroke-width="3" opacity=".5"/></svg>`;
+const SPIKES = `<svg width="104" height="42" viewBox="0 0 86 34">
+    <path d="M 2 32 L 16 4 L 30 32 L 44 4 L 58 32 L 72 4 L 84 32 Z"
+          fill="#c9ccd6" stroke="#241F2E" stroke-width="4" stroke-linejoin="round"/></svg>`;
+const DRONE = `<svg width="86" height="56" viewBox="0 0 72 46">
+    <path d="M 8 30 L 64 30 L 58 14 L 14 14 Z" fill="#f0607d" stroke="#241F2E" stroke-width="4"
+          stroke-linejoin="round"/>
+    <circle cx="36" cy="22" r="6" fill="#fff" stroke="#241F2E" stroke-width="3"/>
+    <path d="M 14 14 L 8 4 M 58 14 L 64 4" stroke="#241F2E" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 2 4 H 20 M 52 4 H 70" stroke="#241F2E" stroke-width="4" stroke-linecap="round"/></svg>`;
+const BOLT = `<svg width="30" height="30" viewBox="0 0 30 30">
+    <circle cx="15" cy="15" r="12" fill="#f4b32c" stroke="#241F2E" stroke-width="3.5"/>
+    <path d="M 16.5 6 L 10 16 H 14.5 L 13 24 L 20 13.5 H 15.5 Z"
+          fill="#fff6d8" stroke="#241F2E" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+/* height above the ground, and what it costs you to get it wrong */
+const KINDS = {
+    crate:  { html: CRATE,  w: 66, h: 66, lift: 0,   line: 'A crate got in the way.' },
+    spikes: { html: SPIKES, w: 104, h: 42, lift: 0,   line: 'Straight into the spikes.' },
+    drone:  { html: DRONE,  w: 86, h: 56, lift: 112,  line: 'That drone was flying low.' },
+};
+
+function spawn() {
+    const roll = Math.random();
+    // drones only once there is enough speed for a slide to feel worth it
+    const kind = roll < .42 ? 'crate' : (roll < .72 || world.speed < 420 ? 'spikes' : 'drone');
+    addThing(kind);
+
+    // a little chain of bolts, sometimes arcing where a jump would take you
+    if (Math.random() < .55) {
+        const n = 3 + ((Math.random() * 3) | 0);
+        const arc = Math.random() < .5;
+        for (let i = 0; i < n; i++)
+            addThing('bolt', 240 + i * 46, arc ? 60 + Math.sin(i / (n - 1) * Math.PI) * 120 : 70);
+    }
+}
+function addThing(kind, ahead = 0, lift = null) {
+    const el = document.createElement('div');
+    const isBolt = kind === 'bolt';
+    const k = isBolt ? { html: BOLT, w: 30, h: 30 } : KINDS[kind];
+    el.className = 'thing' + (isBolt ? ' coin' : '');
+    el.innerHTML = k.html;
+    el.style.bottom = `calc(24% + ${lift === null ? k.lift : lift}px)`;
+    gameEl.appendChild(el);
+    world.things.push({ el, kind, x: gameEl.clientWidth + 40 + ahead, w: k.w, h: k.h, dead: false });
+}
+
+function dust() {
+    const r = hero.getBoundingClientRect();
+    const d = document.createElement('div');
+    d.className = 'dust';
+    d.style.left = `${r.left + r.width * .3}px`;
+    gameEl.appendChild(d);
+    setTimeout(() => d.remove(), 460);
+}
+
+/* ---- input --------------------------------------------------------- */
+function jump() {
+    if (!world.running) return;
+    if (world.jumps === 0) {
+        world.vy = JUMP_V; world.jumps = 1; world.held = 0; world.holding = true;
+        play('jump'); dust();
+    } else if (world.jumps === 1) {
+        // the blades give a second push the way a spring would
+        world.vy = BOOST_V; world.jumps = 2; world.held = 0; world.holding = true;
+        play('boost');
+        hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
+    }
+}
+function slideOn() {
+    if (!world.running || world.sliding) return;
+    world.sliding = true;
+    hero.classList.add('slide');
+    play('slide');
+}
+function slideOff() {
+    world.sliding = false;
+    hero.classList.remove('slide');
+}
+
+let touchY = null;
+addEventListener('pointerdown', e => {
+    if (e.target.closest('.btn')) return;
+    touchY = e.clientY;
+    jump();
+});
+addEventListener('pointermove', e => {
+    if (touchY !== null && e.clientY - touchY > 40) { slideOn(); touchY = null; }
+});
+addEventListener('pointerup', () => { touchY = null; world.holding = false; slideOff(); });
+addEventListener('keydown', e => {
+    if (e.repeat) return;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); jump(); }
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); slideOn(); }
+});
+addEventListener('keyup', e => {
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') world.holding = false;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') slideOff();
+});
+
+/* ---- the loop ------------------------------------------------------ */
+let last = 0, offsets = { clouds: 0, hills: 0, trees: 0, ground: 0 };
+function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (now - last) / 1000 || 0);
+    last = now;
+    if (!world.running) return;
+
+    world.t += dt;
+    world.speed = Math.min(SPEED_MAX, world.speed + SPEED_RAMP * dt);
+    world.dist += world.speed * dt / 12;
+
+    // gravity, with a shove while the jump is held
+    if (world.holding && world.held < HOLD_MAX && world.vy > 0) {
+        world.vy += HOLD_LIFT * dt;
+        world.held += dt;
+    }
+    world.vy -= GRAVITY * dt;
+    world.y += world.vy * dt;
+    if (world.y <= 0) {
+        if (world.jumps > 0) { play('land'); dust(); }
+        world.y = 0; world.vy = 0; world.jumps = 0;
+    }
+    hero.style.transform = `translateY(${-world.y}px)`;
+    hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
+    if (!world.sliding)
+        hero.className = world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run';
+    else hero.className = 'slide';
+
+    // the backdrop, each layer at its own fraction of the pace
+    const px = world.speed * dt;
+    offsets.clouds = (offsets.clouds + px * .08) % (gameEl.clientWidth * 2);
+    offsets.hills  = (offsets.hills  + px * .22) % (gameEl.clientWidth * 2);
+    offsets.trees  = (offsets.trees  + px * .55) % (gameEl.clientWidth * 2);
+    offsets.ground = (offsets.ground + px) % 46;
+    document.getElementById('clouds-strip').style.transform = `translateX(${-offsets.clouds}px)`;
+    document.getElementById('hills-strip').style.transform  = `translateX(${-offsets.hills}px)`;
+    document.getElementById('trees-strip').style.transform  = `translateX(${-offsets.trees}px)`;
+    document.getElementById('ground').style.backgroundPositionX = `${-offsets.ground}px`;
+
+    // things move, get collected, or end the run
+    const hb = heroBox();
+    for (const t of world.things) {
+        t.x -= px;
+        t.el.style.transform = `translateX(${t.x}px)`;
+        if (t.dead) continue;
+        const r = t.el.getBoundingClientRect();
+        const hitsIt = r.left < hb.x + hb.w && r.right > hb.x && r.top < hb.y + hb.h && r.bottom > hb.y;
+        if (!hitsIt) continue;
+        if (t.kind === 'bolt') {
+            t.dead = true; t.el.classList.add('pop');
+            world.coins++; play('coin');
+            document.getElementById('coin-count').textContent = world.coins;
+        } else {
+            return crash(t.kind);
+        }
+    }
+    world.things = world.things.filter(t => {
+        if (t.x > -200) return true;
+        t.el.remove(); return false;
+    });
+
+    world.spawnIn -= px;
+    if (world.spawnIn <= 0) {
+        spawn();
+        // the gap shrinks with speed, but never below what a jump can clear
+        const room = 260 + world.speed * .55;
+        world.spawnIn = room + Math.random() * room * .7;
+    }
+
+    document.getElementById('dist').textContent = Math.floor(world.dist);
+    document.getElementById('speedlines').style.opacity = world.speed > 560 ? .5 : 0;
+}
+requestAnimationFrame(frame);
+
+/* ---- starting, and stopping ---------------------------------------- */
+function crash(kind) {
+    world.running = false;
+    play('hit');
+    stopMusic();
+    if (navigator.vibrate) navigator.vibrate(160);
+
+    const flash = document.getElementById('flash');
+    flash.animate([{ opacity: .85 }, { opacity: 0 }], { duration: 320 });
+    hero.classList.add('hurt');
+
+    // the hat carries on without him
+    const r = hero.getBoundingClientRect();
+    const hat = document.createElement('div');
+    hat.id = 'hat-fly';
+    hat.innerHTML = `<svg viewBox="0 0 50 22" width="64">
+        <path d="M 12 10 C 14 2, 26 1, 31 6 L 33 11 Z" fill="#B5703A" stroke="#241F2E" stroke-width="2.3"/>
+        <path d="M 3 12 C 11 7, 39 6, 47 11 C 39 17, 11 17, 3 12 Z"
+              fill="#B5703A" stroke="#241F2E" stroke-width="2.3"/></svg>`;
+    hat.style.left = `${r.left + 10}px`;
+    hat.style.top = `${r.top}px`;
+    gameEl.appendChild(hat);
+    hat.animate([{ transform: 'translate(0,0) rotate(0)' },
+                 { transform: 'translate(-160px,-90px) rotate(-220deg)', opacity: 0 }],
+                { duration: 900, easing: 'ease-out' });
+    setTimeout(() => hat.remove(), 950);
+
+    const score = Math.floor(world.dist);
+    if (score > best) {
+        best = score;
+        try { localStorage.setItem(bestKey, String(best)); } catch (e) { /* private mode */ }
+    }
+    document.getElementById('over-title').textContent = score >= best && score > 0 ? 'Best yet!' : 'Ouch!';
+    document.getElementById('over-line').textContent = KINDS[kind].line;
+    document.getElementById('over-dist').textContent = score;
+    document.getElementById('over-coins').textContent = world.coins;
+    document.getElementById('over-best').textContent = best;
+    setTimeout(() => { document.getElementById('over-card').hidden = false; }, 700);
+}
+
+function begin() {
+    document.getElementById('start-card').hidden = true;
+    document.getElementById('over-card').hidden = true;
+    world.things.forEach(t => t.el.remove());
+    Object.assign(world, {
+        running: true, speed: SPEED_MIN, dist: 0, coins: 0,
+        y: 0, vy: 0, jumps: 0, held: 0, holding: false, sliding: false,
+        spawnIn: 520, things: [], t: 0
+    });
+    hero.className = 'run';
+    hero.classList.remove('hurt');
+    hero.style.transform = 'translateY(0)';
+    document.getElementById('dist').textContent = '0';
+    document.getElementById('coin-count').textContent = '0';
+    startMusic();
+}
+document.getElementById('go').addEventListener('click', e => { e.stopPropagation(); begin(); });
+document.getElementById('again').addEventListener('click', e => { e.stopPropagation(); begin(); });
+
+/* offline, once it is served over http(s) */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
