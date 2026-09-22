@@ -284,8 +284,7 @@ body {
     background: var(--panel); border: 3px solid var(--ink); border-radius: 13px;
     box-shadow: var(--pop);
 }
-.plate .cap { display: block; font-family: var(--font); font-size: 9.5px; font-weight: 900;
-              letter-spacing: .12em; opacity: .62; margin-bottom: -3px; }
+.plate .cap { display: none; }
 .plate.mid { font-size: 21px; opacity: .92; }
 /* the only thing in the HUD you can actually press */
 #mute {
@@ -390,7 +389,7 @@ body {
 .bigscore span:last-child { display: block; font-family: var(--font-display); font-size: 62px;
                             line-height: 1; letter-spacing: .02em; }
 .ico { fill: currentColor; width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; }
-.plate .ico { width: 18px; height: 18px; flex: none; margin: 1px 0 0; opacity: .7; }
+.plate .ico { width: 16px; height: 16px; flex: none; margin: 0; opacity: .7; }
 /* the combo, for as long as he keeps it going */
 #mult {
     font-family: var(--font-display); font-size: .82em; color: var(--ink);
@@ -406,13 +405,10 @@ body {
     text-shadow: 0 2px 0 var(--panel), 2px 0 0 var(--panel),
                  -2px 0 0 var(--panel), 0 -2px 0 var(--panel);
 }
-.plate.mid .ico { width: 15px; height: 15px; }
+.plate.mid .ico { width: 14px; height: 14px; }
 /* on a phone the icons carry the meaning on their own, and the words come off */
 @media (max-width: 430px) {
-    .plate .cap { display: none; }
-    .plate .ico { width: 15px; height: 15px; margin: 0; }
     .plate.mid { font-size: 19px; }
-    .plate.mid .ico { width: 13px; height: 13px; }
     #mute { padding: 5px 6px 2px; }
     #mute svg { width: 19px; height: 19px; }
 }
@@ -616,7 +612,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v22';
+const APP_VERSION = 'v23';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
