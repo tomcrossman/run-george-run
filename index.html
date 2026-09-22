@@ -193,8 +193,10 @@ body {
 /* the twins hi-five instead of pirouetting, and Henry's glasses stay on his nose */
 .hifive { display: none; }
 #game.twins #hero.dance .hifive { display: block; }
-#game.twins #hero.dance .arm-a, #game.twins #hero.dance .arm-b,
-#game.twins #hero.ride.dance .arm-up-a, #game.twins #hero.ride.dance .arm-up-b { display: none; }
+#game.twins #hero.dance .arm-a, #game.twins #hero.dance .arm-b { display: none; }
+/* from the saddle they raise the roof together instead: sat one behind the
+   other there is no room between them to get a hand up for a hi-five */
+#game.twins #hero.ride.dance .hifive { display: none; }
 #game.twins #hero.dance .leg-a { transform: rotate(-16deg); }
 #game.twins #hero.dance .leg-b { transform: rotate(14deg); }
 #game.twins #hero.jump .hero-hat, #game.twins #hero.fall .hero-hat,
@@ -230,6 +232,7 @@ body {
     box-shadow: var(--pop); animation: tagbob .5s ease-in-out infinite alternate;
 }
 .ride-tag.blue { background: #9CC5E4; }
+.ride-tag.pink { background: #F29CB8; }
 /* a beat of notice at the edge before something arrives */
 .warn {
     position: absolute; right: 4px; z-index: 5; pointer-events: none;
@@ -400,6 +403,17 @@ body {
 }
 .cast .face svg { width: 100%; height: 100%; display: block; }
 .cast .face .ko, .cast .face .wob, .cast .face .tongue, .cast .face .hand { display: none; }
+/* on the run-over card there is no room for the names, so it is faces only */
+.switch { margin-top: 14px; }
+.switch > span {
+    display: block; margin-bottom: 6px;
+    font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+    opacity: .5;
+}
+.casts.mini { margin: 0; justify-content: center; gap: 10px; }
+.casts.mini .cast { flex: none; padding: 5px; }
+.casts.mini .cast > span:not(.face) { display: none; }
+.casts.mini .face { width: 42px; height: 42px; }
 
 .btn {
     margin-top: 16px; width: 100%;
@@ -424,6 +438,8 @@ body {
     .card h1 { font-size: 28px; }
     .card .keys { margin-top: 8px; gap: 5px 8px; }
     .cast { font-size: 13px; padding: 5px 4px 4px; }
+    .switch { margin-top: 10px; }
+    .casts.mini .face { width: 36px; height: 36px; }
     .cast .face { width: 38px; height: 38px; }
     .casts { margin-top: 10px; }
     .btn { margin-top: 11px; padding: 9px; font-size: 21px; }
@@ -649,6 +665,8 @@ body {
             <div class="sub" id="over-sub"></div>
             <div class="bestline"><svg class="ico"><use href="#i-cup"/></svg>Best <span id="over-best">0</span></div>
             <div class="beat" id="over-beat"></div>
+            <div class="switch"><span>Switch characters</span>
+                <div class="casts mini" id="pick-over"></div></div>
             <button class="btn" id="again">Again!</button>
         </div>
     </div>
@@ -666,7 +684,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v49';
+const APP_VERSION = 'v50';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1107,13 +1125,17 @@ const ROBUX = `<svg width="34" height="34" viewBox="0 0 34 34">
     <rect x="13.7" y="13.7" width="6.6" height="6.6" rx="1" fill="#FFFDF8"/></svg>`;
 // Nora, small enough to be carried and brave enough to take a hit
 const NORA = `<svg width="42" height="50" viewBox="0 0 44 52"><g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-        <path d="M 13 33 L 10 45" stroke="#E98CA8" stroke-width="7"/>
-        <path d="M 31 33 L 34 45" stroke="#E98CA8" stroke-width="7"/>
+        <path d="M 13 33 L 10 45" stroke="#5E6B8C" stroke-width="7"/>
+        <path d="M 31 33 L 34 45" stroke="#5E6B8C" stroke-width="7"/>
         <ellipse cx="9" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
         <ellipse cx="35" cy="46.5" rx="5" ry="3.2" fill="#F6FAFD"/>
-        <path d="M 12 42 C 9 34, 10 26, 14 24 L 30 24 C 34 26, 35 34, 32 42 Z" fill="#FBEFD8"/>
+        <path d="M 12 42 C 9 34, 10 26, 14 24 L 30 24 C 34 26, 35 34, 32 42 Z" fill="#F29CB8"/>
         <path d="M 12.5 28 L 6 36" stroke="#FFDCC0" stroke-width="6"/>
         <path d="M 31.5 28 L 38 36" stroke="#FFDCC0" stroke-width="6"/>
+        <path d="M 10.4 11 C 5.8 17, 5 28, 7.6 35 C 11 35.4, 13.6 33, 13 28
+                 C 11.4 22, 10.2 16, 11 11 Z" fill="#8A5E38"/>
+        <path d="M 33.6 11 C 38.2 17, 39 28, 36.4 35 C 33 35.4, 30.4 33, 31 28
+                 C 32.6 22, 33.8 16, 33 11 Z" fill="#8A5E38"/>
         <circle cx="22" cy="14.5" r="12.5" fill="#FFDCC0"/>
         <path d="M 22 2 C 27 2, 28.5 7, 26.5 9.5 C 24.5 7.5, 19.5 7.5, 17.5 9.5
                  C 15.5 7, 17 2, 22 2 Z" fill="#8A5E38"/>
@@ -1163,7 +1185,7 @@ const PAD_MINI = `<svg width="46" height="30" viewBox="0 0 150 96">
         <circle cx="66" cy="66" r="3.4" fill="#8B94AC" stroke="none"/>
         <rect x="64" y="14" width="22" height="9" rx="4.5" fill="#2A3040"/>
     </g></svg>`;
-const NORA_TAG = NORA + '<div class="ride-tag blue">NORA!</div>';
+const NORA_TAG = NORA + '<div class="ride-tag pink">NORA!</div>';
 
 /* height above the ground, and what it costs you to get it wrong */
 const KINDS = {
@@ -1439,7 +1461,7 @@ const HERO_GEORGE = `
         `;
 
 const HERO_TWINS = `
-            <g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
+<g stroke="#241F2E" stroke-linecap="round" stroke-linejoin="round">
                 <g class="hifive">
                     <path d="M 57.64 52.92 C 55.14 40.92, 53.64 22.92, 48.6 14"
                           fill="none" stroke="#241F2E" stroke-width="11"/>
@@ -1513,10 +1535,6 @@ const HERO_TWINS = `
                               fill="none" stroke="#388B5A" stroke-width="2" opacity=".8"/>
                     <path d="M 30 43 L 29.5 49 M 33 43 L 33.5 49"
                           fill="none" stroke="#FFFDF8" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M 21 21 C 13 26, 11.5 38, 16 46
-                             C 21.5 48, 26.5 45.5, 26 41
-                             C 22.5 35, 20.5 28, 21 22 Z"
-                          fill="#4FB477" stroke-width="2.3"/>
                     <path d="M 22.5 18 C 16.5 24, 16 35, 18.5 42
                              C 23 43.5, 27 41, 26 35.5
                              C 24 30, 22.5 24, 23 19 Z"
@@ -1530,6 +1548,13 @@ const HERO_TWINS = `
                     <path d="M 19.4 15 C 15.5 16.5, 15 22, 17.5 25.5
                              C 17.4 20.5, 18.2 17, 19.4 15 Z"
                           fill="#5E3D23" stroke-width="2"/>
+                    <path d="M 41.5 10.5 C 34 5.5, 22 6.5, 17.5 15.5
+                             C 13.5 23.5, 14.5 36, 19 45.5
+                             L 28.5 45 C 24.5 39.5, 23.5 32, 25 25.5
+                             C 27 18.5, 33 13, 41.5 10.5 Z"
+                          fill="#4FB477" stroke-width="2.3"/>
+                    <path d="M 38.5 12.5 C 30.5 15.5, 26.5 21, 26.5 28"
+                          fill="none" stroke="#388B5A" stroke-width="2.2" opacity=".75"/>
                     <g class="eye">
                         <ellipse cx="38.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
                         <circle cx="39.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
@@ -1601,8 +1626,10 @@ const HERO_TWINS = `
                     <path d="M 49 45 L 50 68" stroke="#CE6A1E" stroke-width="3.6"
                           opacity=".55"/>
                     
-                    
-                    
+                    <path d="M 48.5 18 C 43.5 22, 43 29, 45 34
+                             C 48.5 35.5, 52 33.5, 51.5 29.5
+                             C 50 26, 48.5 22, 49 19 Z"
+                          fill="#DCB25E" stroke-width="2.2"/>
                     <circle cx="58" cy="26" r="12.5" fill="#FFDCC0" stroke-width="2.4"/>
                     <path d="M 45 27.5 C 43.5 13.5, 52 10.5, 58.5 11.2
                              C 67 12, 71.4 17.5, 70.6 26
@@ -1612,6 +1639,7 @@ const HERO_TWINS = `
                     <path d="M 45.4 15 C 41.5 16.5, 41 22, 43.5 25.5
                              C 43.4 20.5, 44.2 17, 45.4 15 Z"
                           fill="#BC9138" stroke-width="2"/>
+                    
                     <g class="eye">
                         <ellipse cx="64.4" cy="26" rx="2.6" ry="3.4" fill="#fff" stroke-width="1.4"/>
                         <circle cx="65.1" cy="26.4" r="1.7" fill="#4A3A2C" stroke="none"/>
@@ -1690,6 +1718,15 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
     <path d="M 3.2699999999999996 23.95 C 1.379999999999999 16.93, 4.890000000000001 12.610000000000001,
              9.75 10.989999999999998 C 5.699999999999999 15.58, 3.8100000000000005 19.9,
              3.2699999999999996 23.95 Z" fill="#5E3D23" stroke="#241F2E" stroke-width="1.5"/>
+    <path d="M -2.3999999999999986 50.95 C -4.425000000000001 23.275,
+                   4.35 6.399999999999999, 16.5 6.399999999999999
+                 C 28.65 6.399999999999999, 37.425 23.275,
+                   35.4 50.95
+                 L 29.73 50.95 C 31.35 30.7,
+                   26.490000000000002 12.879999999999999, 16.5 12.879999999999999
+                 C 6.51 12.879999999999999, 1.6499999999999986 30.7,
+                   3.2699999999999996 50.95 Z"
+              fill="#4FB477" stroke="#241F2E" stroke-width="1.8" stroke-linejoin="round"/>
     <ellipse cx="6.780000000000001" cy="33.67" rx="2.7" ry="1.6199999999999999" fill="#F08C7A" opacity=".45"/>
     <ellipse cx="26.22" cy="33.67" rx="2.7" ry="1.6199999999999999" fill="#F08C7A" opacity=".45"/>
     
@@ -1723,6 +1760,7 @@ const PORTRAIT_TWINS = `<svg viewBox="0 0 64 64">
     <path d="M 30.3 20.5 C 28.2 12.700000000000001, 32.1 7.900000000000002,
              37.5 6.100000000000001 C 33.0 11.2, 30.9 16.0,
              30.3 20.5 Z" fill="#BC9138" stroke="#241F2E" stroke-width="1.5"/>
+    
     <ellipse cx="34.2" cy="31.3" rx="3.0" ry="1.7999999999999998" fill="#F08C7A" opacity=".45"/>
     <ellipse cx="55.8" cy="31.3" rx="3.0" ry="1.7999999999999998" fill="#F08C7A" opacity=".45"/>
     <g>
@@ -1861,6 +1899,7 @@ const pickHTML = Object.entries(CASTS).map(([id, c]) =>
     `<span>${c.pick}</span></button>`).join('');
 document.getElementById('pick-start').innerHTML = pickHTML;
 document.getElementById('pick-set').innerHTML = pickHTML;
+document.getElementById('pick-over').innerHTML = pickHTML;
 document.querySelectorAll('.cast').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     if (b.dataset.cast !== castId) { applyCast(b.dataset.cast); play('coin'); }
