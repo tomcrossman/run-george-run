@@ -139,6 +139,18 @@ body {
 #hero.dance .leg-a { transform: rotate(-30deg); }
 #hero.dance .leg-b { transform: rotate(26deg); }
 
+/* up on the capybara: stood on its back like a board, blades planted, arms out */
+#hero.ride .leg-a { transform: rotate(-20deg); }
+#hero.ride .leg-b { transform: rotate(17deg); }
+#hero.ride .arm-a { transform: rotate(-62deg); }
+#hero.ride .arm-b { transform: rotate(46deg); }
+#hero.ride .torso { transform: rotate(-7deg); }
+
+/* knocked out, the way a knocked-out hand looks in Fingaz */
+#eye-x { display: none; }
+#hero.hurt #eye-x { display: block; }
+#hero.hurt .eye { display: none; }
+
 /* the hat is only loosely attached — it lifts on the way up, further on the boost */
 #hero-hat { transform-box: fill-box; transform-origin: 50% 100%;
             transition: transform .16s cubic-bezier(.3, 1.5, .5, 1); }
@@ -165,6 +177,35 @@ body {
 @keyframes trot { 0%, 100% { transform: translateY(0) rotate(-2deg); }
                   50%      { transform: translateY(-3px) rotate(2deg); } }
 .pop { animation: coinPop .35s ease-out forwards; }
+/* the big one is a lift, not a hazard, and it says so in gold */
+.ride-tag {
+    position: absolute; left: 50%; bottom: 100%; margin-bottom: 14px;
+    font-family: var(--font-display); font-size: 21px; letter-spacing: .04em;
+    padding: 3px 12px 1px; white-space: nowrap;
+    background: var(--gold); border: 3px solid var(--ink); border-radius: 12px;
+    box-shadow: var(--pop); animation: tagbob .5s ease-in-out infinite alternate;
+}
+.ride-tag::after {
+    content: ''; position: absolute; left: 50%; margin-left: -7px; top: 100%;
+    border: 7px solid transparent; border-top-color: var(--ink);
+}
+@keyframes tagbob { from { transform: translate(-50%, 0); } to { transform: translate(-50%, -6px); } }
+
+#mount {
+    position: absolute; left: 15%; bottom: 24%; width: 150px; z-index: 4;
+    pointer-events: none; display: none;
+}
+#mount.on { display: block; }
+#mount svg { display: block; width: 100%; height: auto; animation: trot .3s ease-in-out infinite; }
+
+#ridebar {
+    position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 8;
+    width: 168px; height: 12px; padding: 2px; display: none;
+    background: var(--panel); border: 3px solid var(--ink); border-radius: 8px;
+    box-shadow: var(--pop);
+}
+#ridebar.on { display: block; }
+#ridebar i { display: block; height: 100%; width: 100%; border-radius: 4px; background: var(--gold); }
 @keyframes coinPop { to { transform: translateY(-40px) scale(1.5); opacity: 0; } }
 
 /* ============================================================
@@ -269,12 +310,13 @@ body {
     box-shadow: var(--pop); cursor: pointer;
 }
 .btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
-.tally { display: flex; justify-content: center; gap: 22px; margin: 12px 0 4px; }
+.tally { display: flex; justify-content: center; gap: 16px; margin: 12px 0 4px; }
 /* the number is a span too, so only the first one gets the small caption treatment */
 .tally div { font-family: var(--font-display); font-size: 40px; line-height: 1.05; }
 .tally span { display: block; }
-.tally span:first-child { font-family: var(--font); font-size: 11px; font-weight: 900;
-                          letter-spacing: .14em; opacity: .55; }
+.tally span:first-child { font-family: var(--font); font-size: 10.5px; font-weight: 900;
+                          letter-spacing: .1em; opacity: .62; white-space: nowrap; }
+.tally span:first-child svg { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
 .best { color: var(--gold); }
 #version { position: absolute; bottom: 8px; right: 10px; z-index: 8;
            font-size: 9px; font-weight: 800; letter-spacing: .1em; opacity: .35; }
@@ -330,8 +372,14 @@ body {
                     <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
                              C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
                           fill="#F2C75C" stroke-width="2.2"/>
-                    <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
-                    <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
+                    <g class="eye">
+                        <ellipse cx="64" cy="27" rx="2.5" ry="3.3" fill="#fff" stroke-width="1.4"/>
+                        <circle cx="64.7" cy="27.4" r="1.6" fill="#2FA8E0" stroke="none"/>
+                    </g>
+                    <g id="eye-x">
+                        <path d="M 61.6 24.2 l 5.4 5.4 M 67 24.2 l -5.4 5.4"
+                              stroke="#241F2E" stroke-width="2" stroke-linecap="round"/>
+                    </g>
                     <path d="M 61 34.5 q 3.4 2.4 6 -.6" fill="none" stroke-width="1.9"/>
                     <g id="hero-hat">
                         <path d="M 48 17 C 50 8, 62 6, 68 12 L 70 18 Z" fill="#B5703A" stroke-width="2.3"/>
@@ -362,6 +410,8 @@ body {
         </svg>
     </div>
 
+    <div id="mount"></div>
+    <div id="ridebar"><i></i></div>
     <div id="speedlines"></div>
     <div id="flash"></div>
 
@@ -388,6 +438,7 @@ body {
                 <div class="row"><span class="key">Tap again</span> blade boost, mid-air</div>
                 <div class="row"><span class="key">Swipe down</span> slide under it</div>
                 <div class="row"><span class="key">Swipe across</span> showtime — sing or spin</div>
+                <div class="row"><span class="key">RIDE!</span> run into the big capybara</div>
             </div>
             <button class="btn" id="go">Run!</button>
         </div>
@@ -398,9 +449,16 @@ body {
             <h2 id="over-title">Ouch!</h2>
             <p id="over-line">A crate got in the way.</p>
             <div class="tally">
-                <div><span>Metres</span><span id="over-dist">0</span></div>
-                <div><span>Capybaras</span><span id="over-coins">0</span></div>
-                <div class="best"><span>Best</span><span id="over-best">0</span></div>
+                <div><span><svg viewBox="0 0 14 14" fill="currentColor"><path
+                    d="M 3.4 13 V 1.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path
+                    d="M 4.4 2.4 L 12 4.6 L 4.4 7 Z"/></svg>Metres</span><span id="over-dist">0</span></div>
+                <div><span><svg viewBox="0 0 14 14" fill="currentColor"><circle cx="4.3" cy="4.4" r="1.9"/><circle
+                    cx="9.1" cy="4.1" r="1.7"/><path
+                    d="M 1.6 9.4 C 1.6 6.6, 4 5, 7 5 C 10.4 5, 12.6 6.6, 12.6 9
+                       C 12.6 11, 10.6 12.2, 7.6 12.2 L 2.6 12.2 C 2 12.2, 1.6 11, 1.6 9.4 Z"/></svg>Capybaras</span><span id="over-coins">0</span></div>
+                <div class="best"><span><svg viewBox="0 0 14 14" fill="currentColor"><path
+                    d="M 7 1.2 L 8.8 5.2 L 13 5.7 L 9.8 8.6 L 10.7 12.8 L 7 10.6 L 3.3 12.8
+                       L 4.2 8.6 L 1 5.7 L 5.2 5.2 Z"/></svg>Best</span><span id="over-best">0</span></div>
             </div>
             <button class="btn" id="again">Again!</button>
         </div>
@@ -410,7 +468,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v8';
+const APP_VERSION = 'v9';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -512,6 +570,11 @@ const SFX = {
     slide: t => hiss(t, { dur: .3, from: 1400, to: 400, vol: .2 }),
     coin:  t => { tone(t, { freq: 980, dur: .08, type: 'square', vol: .16 });
                   tone(t, { freq: 1480, dur: .12, type: 'square', vol: .13, at: .07 }); },
+    ride:  t => { [392, 523, 659, 784].forEach((f, i) =>
+                      tone(t, { freq: f, dur: .32, type: 'triangle', vol: .2, at: i * .09 }));
+                  hiss(t, { dur: .3, from: 1200, to: 500, vol: .12 }); },
+    smash: t => { tone(t, { freq: 190, to: 60, dur: .18, type: 'sawtooth', vol: .2 });
+                  hiss(t, { dur: .22, from: 2400, to: 400, vol: .2 }); },
     sing:  t => [523, 659, 784, 1046].forEach((f, i) =>
                   tone(t, { freq: f, dur: .34, type: 'triangle', vol: .19, at: i * .13 })),
     dance: t => { [392, 523, 392].forEach((f, i) =>
@@ -620,6 +683,11 @@ const HOLD_LIFT = 1250;          // while the jump is held, gravity is fought
 const DIVE_V = 1100;             // a slide called for in mid-air comes down hard
 const SLIDE_DEG = -76, SLIDE_X = 66, SLIDE_Y = -20; // how far over, forward and up off the ground he goes
 const SLIDE_IN = .1, SLIDE_OUT = .13;               // seconds to get down, and to get back up
+const RIDE_TIME = 7;             // seconds in the saddle
+const RIDE_LIFT = 78;            // his blades land on its back
+const RIDE_FWD = 10;             // and a little forward of where he runs
+const RIDE_SPEED = 1.3;          // and how much faster the world goes by
+const RIDE_FIRST = 320, RIDE_EVERY = 620;   // metres to the first one, and between them
 const MOVE_DUR = .8;             // how long a turn on stage lasts
 const MOVE_PULL = 320;           // and how far away the capybaras can hear it
 const HOLD_MAX = .22;            // for this long at most
@@ -630,7 +698,7 @@ const gameEl = document.getElementById('game');
 const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
     spawnIn: 420, things: [], t: 0
 };
 
@@ -644,7 +712,9 @@ const heroBox = () => {
     // or a slide cannot quietly shrink what he can be hit on
     const g = gameEl.getBoundingClientRect();
     const w = hero.offsetWidth, h = hero.offsetHeight;
-    const left = g.left + hero.offsetLeft, bottom = g.top + hero.offsetTop + h - world.y;
+    const left = g.left + hero.offsetLeft,
+          bottom = g.top + hero.offsetTop + h - world.y - RIDE_LIFT * world.rideT;
+    // (the forward shift while riding is small enough to leave the box where it is)
     const inset = w * 0.3;
     // a forgiving box: narrower than the art, and much shorter when sliding
     return world.slideT > .55
@@ -685,6 +755,10 @@ const CAPY = `<svg width="36" height="27" viewBox="0 0 44 30">
         <circle cx="33.4" cy="14.4" r=".65" fill="#fff" stroke="none"/>
     </g></svg>`;
 
+// the same capybara, grown up enough to sit on
+const BIG_CAPY = CAPY.replace('width="36" height="27"', 'width="150" height="112"')
+                     + '<div class="ride-tag">RIDE!</div>';
+
 /* height above the ground, and what it costs you to get it wrong */
 const KINDS = {
     crate:  { html: CRATE,  w: 66, h: 66, lift: 0,   line: 'A crate got in the way.' },
@@ -693,6 +767,11 @@ const KINDS = {
 };
 
 function spawn() {
+    // every so often a big one turns up, to be ridden rather than dodged
+    if (world.riding === 0 && world.dist > world.rideAt) {
+        world.rideAt = world.dist + RIDE_EVERY + Math.random() * 300;
+        return addThing('ride');
+    }
     const roll = Math.random();
     // drones only once there is enough speed for a slide to feel worth it
     const kind = roll < .42 ? 'crate' : (roll < .72 || world.speed < 420 ? 'spikes' : 'drone');
@@ -709,7 +788,9 @@ function spawn() {
 function addThing(kind, ahead = 0, lift = null) {
     const el = document.createElement('div');
     const isCapy = kind === 'capy';
-    const k = isCapy ? { html: CAPY, w: 36, h: 27 } : KINDS[kind];
+    const k = isCapy ? { html: CAPY, w: 36, h: 27 }
+            : kind === 'ride' ? { html: BIG_CAPY, w: 150, h: 112, lift: 0 }
+            : KINDS[kind];
     el.className = 'thing' + (isCapy ? ' coin' : '');
     el.innerHTML = k.html;
     el.style.bottom = `calc(24% + ${lift === null ? k.lift : lift}px)`;
@@ -758,9 +839,31 @@ function jump() {
         hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
     }
 }
+const mountEl = document.getElementById('mount');
+const rideBar = document.getElementById('ridebar');
+mountEl.innerHTML = CAPY.replace('width="36" height="27"', 'width="150" height="112"');
+
+function mount() {
+    world.riding = RIDE_TIME;
+    endMove(); slideOff();
+    mountEl.classList.add('on');
+    rideBar.classList.add('on');
+    play('ride');
+    notes(3);
+}
+function dismount() {
+    world.riding = 0;
+    rideBar.classList.remove('on');
+    // it peels off and drops behind him
+    mountEl.animate([{ transform: 'translateX(0)', opacity: 1 },
+                     { transform: 'translateX(-280px)', opacity: 0 }],
+                    { duration: 600, easing: 'ease-in' });
+    setTimeout(() => mountEl.classList.remove('on'), 560);
+}
+
 function perform(kind) {
     // only on his blades, and only one turn at a time
-    if (!world.running || world.y > 0 || world.sliding || world.moveT > 0) return;
+    if (!world.running || world.y > 0 || world.sliding || world.moveT > 0 || world.riding > 0) return;
     // the press that began the swipe already asked for a jump; take it back
     if (world.jumps === 1 && world.t - world.jumpAt < .22) {
         world.y = 0; world.vy = 0; world.jumps = 0;
@@ -793,7 +896,7 @@ function notes(n) {
 function endMove() { world.move = null; world.moveT = 0; }
 
 function slideOn() {
-    if (!world.running || world.sliding) return;
+    if (!world.running || world.sliding || world.riding > 0) return;
     // every swipe starts with a press, and that press already asked for a jump.
     // take it back if it was only a beat ago, so the slide stays on the ground
     if (world.jumps === 1 && world.t - world.jumpAt < .22) {
@@ -866,20 +969,29 @@ function frame(now) {
     const s = world.slideT;
     // the dance is a pirouette: a turn on the spot, about his own axis
     const spin = world.move === 'dance' ? Math.cos(2 * Math.PI * (1 - world.moveT / MOVE_DUR)) : 1;
-    hero.style.transform = `translateY(${-world.y}px)`
+    hero.style.transform = `translate(${RIDE_FWD * world.rideT}px, ${-(world.y + RIDE_LIFT * world.rideT)}px)`
         + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '')
         + (spin < 1 ? ` scaleX(${Math.sign(spin) * Math.max(.34, Math.abs(spin))})` : '');
+    if (world.riding > 0) mountEl.style.transform = `translateY(${-world.y}px)`;
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
     if (world.moveT > 0 && (world.moveT = Math.max(0, world.moveT - dt)) === 0) endMove();
+    if (world.riding > 0) {
+        world.riding = Math.max(0, world.riding - dt);
+        rideBar.firstElementChild.style.width = `${world.riding / RIDE_TIME * 100}%`;
+        if (world.riding === 0) dismount();
+    }
+    // he climbs on and steps off over a moment, rather than teleporting
+    world.rideT = Math.max(0, Math.min(1, world.rideT + dt / (world.riding > 0 ? .18 : -.22)));
 
     const lost = hero.classList.contains('lost') ? ' lost' : '';
-    if (world.move) hero.className = world.move + lost;
+    if (world.rideT > .5 && world.y <= 0) hero.className = 'ride' + lost;
+    else if (world.move) hero.className = world.move + lost;
     else if (world.slideT > .5) hero.className = 'slide' + lost;
     else hero.className = (world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run')
                         + (world.jumps > 1 ? ' dbl' : '') + lost;
 
     // the backdrop, each layer at its own fraction of the pace
-    const px = world.speed * dt;
+    const px = world.speed * (world.riding > 0 ? RIDE_SPEED : 1) * dt;
     offsets.clouds = (offsets.clouds + px * .08) % (gameEl.clientWidth * 2);
     offsets.hills  = (offsets.hills  + px * .22) % (gameEl.clientWidth * 2);
     offsets.trees  = (offsets.trees  + px * .55) % (gameEl.clientWidth * 2);
@@ -895,7 +1007,7 @@ function frame(now) {
         t.x -= px;
         if (t.dead) { t.el.style.transform = `translateX(${t.x}px)`; continue; }
         // a capybara cannot resist a performance, and comes over to watch
-        if (world.move && t.kind === 'capy') {
+        if ((world.move || world.riding > 0) && t.kind === 'capy') {
             const gap = t.x - hero.offsetLeft;
             if (gap > 0 && gap < MOVE_PULL) {
                 t.x -= gap * .07;
@@ -911,6 +1023,13 @@ function frame(now) {
             t.dead = true; t.el.classList.add('pop');
             world.coins++; play('coin');
             document.getElementById('coin-count').textContent = world.coins;
+        } else if (t.kind === 'ride') {
+            t.dead = true; t.el.remove();
+            mount();
+        } else if (world.riding > 0) {
+            // nothing stands in the way of a capybara at full tilt
+            t.dead = true; t.el.classList.add('pop');
+            play('smash');
         } else {
             return crash(t.kind);
         }
@@ -941,6 +1060,7 @@ function crash(kind) {
     world.running = false;
     play('hit');
     stopMusic();
+    if (world.riding > 0) dismount();
     if (navigator.vibrate) navigator.vibrate(160);
 
     const flash = document.getElementById('flash');
@@ -986,11 +1106,13 @@ function begin() {
     Object.assign(world, {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
     hero.classList.remove('hurt', 'lost');
+    mountEl.classList.remove('on');
+    rideBar.classList.remove('on');
     hero.style.transform = 'translateY(0)';
     document.getElementById('dist').textContent = '0';
     document.getElementById('best-val').textContent = best;
