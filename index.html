@@ -124,6 +124,16 @@ body {
 #hero.slide .leg-a { transform: rotate(52deg); }
 #hero.slide .leg-b { transform: rotate(36deg); }
 
+/* the hat is only loosely attached — it lifts on the way up, further on the boost */
+#hero-hat { transform-box: fill-box; transform-origin: 50% 100%;
+            transition: transform .16s cubic-bezier(.3, 1.5, .5, 1); }
+#hero.jump #hero-hat { transform: translateY(-4px) rotate(-5deg); }
+#hero.fall #hero-hat { transform: translateY(-2px) rotate(-3deg); }
+#hero.jump.dbl #hero-hat { transform: translateY(-10px) rotate(-13deg); }
+#hero.fall.dbl #hero-hat { transform: translateY(-5px) rotate(-7deg); }
+/* once it has flown off, it is not on his head any more */
+#hero.lost #hero-hat { opacity: 0; }
+
 #hero.hurt { animation: hurt .5s steps(2) 3; }
 @keyframes hurt { 0% { opacity: 1; } 50% { opacity: .25; } 100% { opacity: 1; } }
 
@@ -248,13 +258,20 @@ body {
     <div id="hero" class="run">
         <svg viewBox="0 0 104 132" aria-label="George, running on two blades">
             <defs>
-                <!-- one blade, used four times: socket at the top, taper to the toe -->
+                <!-- One blade. A running blade bows rearward from the socket and
+                     sweeps its toe FORWARD, ahead of the leg — drawn the other way
+                     round it reads as a bird's leg, and the whole run looks
+                     backwards. Stroked rather than filled: an ink pass under a
+                     carbon pass gives the house outline for free. -->
                 <g id="blade">
-                    <path d="M -3.6 0 L 3.6 0 C 8.6 8, 9 17, 2.8 24 C -0.6 27.6, -5 30.4, -9.6 32
-                             L -12 28 C -7.4 26.2, -3.6 23.6, -1.2 19.6 C 1.2 14.6, 0.6 7, -3.6 0 Z"
-                          fill="#3C4254" stroke="#241F2E" stroke-width="2.3" stroke-linejoin="round"/>
-                    <path d="M 1.6 4 C 5.2 10.5, 5 17.5, 1 22" fill="none"
-                          stroke="#7E88A4" stroke-width="1.7" stroke-linecap="round"/>
+                    <path d="M 0 0 C -4.4 9, -3.6 19, 1.6 25.4 C 6.2 31, 11.2 33.4, 15.4 34.4"
+                          fill="none" stroke="#241F2E" stroke-width="10.5" stroke-linecap="round"/>
+                    <path d="M 0 0 C -4.4 9, -3.6 19, 1.6 25.4 C 6.2 31, 11.2 33.4, 15.4 34.4"
+                          fill="none" stroke="#3C4254" stroke-width="6.2" stroke-linecap="round"/>
+                    <path d="M -0.6 7 C -2.4 13, -1.6 19, 1.4 23.4"
+                          fill="none" stroke="#7E88A4" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M 11.6 35.6 L 17.6 35.6" stroke="#241F2E"
+                          stroke-width="4.4" stroke-linecap="round"/>
                 </g>
             </defs>
 
@@ -262,13 +279,13 @@ body {
                 <g class="leg-b" opacity=".82">
                     <path d="M 50 78 L 47 95" stroke="#F0B892" stroke-width="10"/>
                     <rect x="41.5" y="93" width="11" height="9" rx="3" fill="#2A3040" stroke-width="2.2"/>
-                    <g transform="translate(47,101)"><use href="#blade"/></g>
+                    <g transform="translate(47,97)"><use href="#blade"/></g>
                 </g>
                 <g class="arm-b" opacity=".82">
                     <path d="M 54 50 L 47 60 L 52 68" fill="none" stroke="#F0B892" stroke-width="7.5"/>
                 </g>
 
-                <g class="torso">
+                <g class="torso" transform="rotate(-5 53 70)">
                     <path d="M 44 66 L 60 66 L 58 80 L 46 80 Z" fill="#1C82B4" stroke-width="2.4"/>
                     <path d="M 45 42 C 44 36, 62 36, 61 42 L 62 68 L 44 68 Z" fill="#2FA8E0" stroke-width="2.4"/>
                     <path d="M 47 44 L 48 66" stroke="#1C82B4" stroke-width="4" opacity=".5"/>
@@ -292,7 +309,7 @@ body {
                 <g class="leg-a">
                     <path d="M 55 78 L 58 95" stroke="#FFDCC0" stroke-width="10.5"/>
                     <rect x="52.5" y="93" width="11" height="9" rx="3" fill="#39415A" stroke-width="2.2"/>
-                    <g transform="translate(58,101)"><use href="#blade"/></g>
+                    <g transform="translate(58,97)"><use href="#blade"/></g>
                 </g>
             </g>
         </svg>
@@ -336,7 +353,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v1';
+const APP_VERSION = 'v2';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -655,9 +672,11 @@ function frame(now) {
     }
     hero.style.transform = `translateY(${-world.y}px)`;
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
+    const lost = hero.classList.contains('lost') ? ' lost' : '';
     if (!world.sliding)
-        hero.className = world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run';
-    else hero.className = 'slide';
+        hero.className = (world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run')
+                       + (world.jumps > 1 ? ' dbl' : '') + lost;
+    else hero.className = 'slide' + lost;
 
     // the backdrop, each layer at its own fraction of the pace
     const px = world.speed * dt;
@@ -716,7 +735,8 @@ function crash(kind) {
     flash.animate([{ opacity: .85 }, { opacity: 0 }], { duration: 320 });
     hero.classList.add('hurt');
 
-    // the hat carries on without him
+    // the hat carries on without him — and off his head
+    hero.classList.add('lost');
     const r = hero.getBoundingClientRect();
     const hat = document.createElement('div');
     hat.id = 'hat-fly';
@@ -755,7 +775,7 @@ function begin() {
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
-    hero.classList.remove('hurt');
+    hero.classList.remove('hurt', 'lost');
     hero.style.transform = 'translateY(0)';
     document.getElementById('dist').textContent = '0';
     document.getElementById('coin-count').textContent = '0';
