@@ -212,6 +212,13 @@ body {
     box-shadow: var(--pop); animation: tagbob .5s ease-in-out infinite alternate;
 }
 .ride-tag.blue { background: #9CC5E4; }
+/* a beat of notice at the edge before something arrives */
+.warn {
+    position: absolute; right: 4px; z-index: 5; pointer-events: none;
+    animation: warnFlash .26s ease-in-out infinite alternate;
+}
+@keyframes warnFlash { from { opacity: .3;  transform: translateX(5px); }
+                       to   { opacity: 1;   transform: translateX(-3px); } }
 .ride-tag::after {
     content: ''; position: absolute; left: 50%; margin-left: -7px; top: 100%;
     border: 7px solid transparent; border-top-color: var(--ink);
@@ -614,9 +621,9 @@ body {
             <h1>Run George,<br>Run</h1>
             <p>Two blades, one hat, no brakes.</p>
             <div class="keys">
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap</span><span class="what">jump — hold for higher</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-tap"/></svg>Tap or flick up</span><span class="what">jump — hold for higher</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-boost"/></svg>Tap again</span><span class="what">blade boost, mid-air</span></div>
-                <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide under it</span></div>
+                <div class="row"><span class="key"><svg class="ico"><use href="#i-down"/></svg>Swipe down</span><span class="what">slide, or dive down</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-across"/></svg>Swipe across</span><span class="what">showtime, and a combo</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-capy"/></svg>RIDE!</span><span class="what">ride the big capybara</span></div>
                 <div class="row"><span class="key"><svg class="ico"><use href="#i-fudge"/></svg>FUDGE!</span><span class="what">he takes one hit for you</span></div>
@@ -642,7 +649,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v31';
+const APP_VERSION = 'v35';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -696,7 +703,7 @@ function treesSVG() {
    SOUND — the Fingaz engine, slimmed to what a runner needs
    ============================================================ */
 const AC = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null, master = null, noiseBuf = null, musicGain = null;
+let audioCtx = null, master = null, noiseBuf = null, musicGain = null, sfxGain = null;
 let soundOn = true;
 
 function audioNow() {
@@ -705,6 +712,10 @@ function audioNow() {
         master = audioCtx.createGain();
         master.gain.value = .9;
         master.connect(audioCtx.destination);
+        // the effects sit on their own bus so the music can hold its place under them
+        sfxGain = audioCtx.createGain();
+        sfxGain.gain.value = .72;
+        sfxGain.connect(master);
         const len = Math.floor(audioCtx.sampleRate * 1.1);
         noiseBuf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
         const d = noiseBuf.getChannelData(0);
@@ -721,7 +732,7 @@ function tone(t0, { freq, to, dur = .18, type = 'square', vol = .18, at = 0 }) {
     g.gain.setValueAtTime(.0001, s);
     g.gain.exponentialRampToValueAtTime(vol, s + .012);
     g.gain.exponentialRampToValueAtTime(.0001, s + dur);
-    o.connect(g); g.connect(master);
+    o.connect(g); g.connect(sfxGain);
     o.start(s); o.stop(s + dur + .02);
 }
 function hiss(t0, { dur = .2, from = 2200, to = 600, vol = .25, at = 0 }) {
@@ -733,7 +744,7 @@ function hiss(t0, { dur = .2, from = 2200, to = 600, vol = .25, at = 0 }) {
     f.frequency.exponentialRampToValueAtTime(Math.max(60, to), s + dur);
     g.gain.setValueAtTime(vol, s);
     g.gain.exponentialRampToValueAtTime(.0001, s + dur);
-    n.connect(f); f.connect(g); g.connect(master);
+    n.connect(f); f.connect(g); g.connect(sfxGain);
     n.start(s); n.stop(s + dur + .02);
 }
 const SFX = {
@@ -862,7 +873,7 @@ const tick = (t, vol) => noiseHit(t, { hp: 7200, dur: .04, vol });
 function startMusic() {
     if (!soundOn || musicTimer) return;
     audioNow();
-    if (!musicGain) { musicGain = audioCtx.createGain(); musicGain.gain.value = .1; musicGain.connect(master); }
+    if (!musicGain) { musicGain = audioCtx.createGain(); musicGain.gain.value = .26; musicGain.connect(master); }
     nextAt = audioCtx.currentTime + .1; step = 0;
     musicTimer = setInterval(() => {
         if (!audioCtx) return;
@@ -884,6 +895,8 @@ const SPEED_MIN = 340, SPEED_MAX = 720, SPEED_RAMP = 11;   // px/s, and px/s per
 const GRAVITY = 2400, JUMP_V = 830, BOOST_V = 720;
 const HOLD_LIFT = 1250;          // while the jump is held, gravity is fought
 const SLIDE_DEG = -76, SLIDE_X = 66, SLIDE_Y = -20; // how far over, forward and up off the ground he goes
+const DIVE_V = 1100;             // a slide called for in mid-air comes down hard
+const SLIDE_HOLD = .85;          // a slide runs for this long on its own
 const SLIDE_IN = .1, SLIDE_OUT = .13;               // seconds to get down, and to get back up
 const RIDE_TIME = 7;             // seconds in the saddle
 const RIDE_LIFT = 14;            // enough to sit his hips on its back
@@ -907,7 +920,8 @@ const gameEl = document.getElementById('game');
 const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST, hopFrom: null, hopGid: -1,
+    slideLeft: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
     spawnIn: 420, things: [], t: 0
 };
@@ -1009,16 +1023,16 @@ function spawn() {
     // every so often a big one turns up, to be ridden rather than dodged
     if (world.riding === 0 && world.dist > world.rideAt) {
         world.rideAt = world.dist + RIDE_EVERY + Math.random() * 300;
-        return addThing('ride');
+        return warn('ride');
     }
     if (!world.carry && world.dist > world.fudgeAt) {
         world.fudgeAt = world.dist + FUDGE_EVERY + Math.random() * 420;
-        return addThing('fudge');
+        return warn('fudge');
     }
     const roll = Math.random();
     // drones only once there is enough speed for a slide to feel worth it
     const kind = roll < .42 ? 'crate' : (roll < .72 || world.speed < 420 ? 'spikes' : 'drone');
-    addThing(kind);
+    warn(kind);
 
     // a little herd of capybaras, sometimes arcing where a jump would take you
     if (Math.random() < .55) {
@@ -1028,13 +1042,43 @@ function spawn() {
             addThing('capy', 240 + i * 50, arc ? 60 + Math.sin(i / (n - 1) * Math.PI) * 120 : 70);
     }
 }
+// everything worth reacting to is announced at the right-hand edge first, so the
+// screen is never the first warning you get
+const WARN_TIME = 520;
+let warnTimers = [];
+function warn(kind, ahead = 0) {
+    const k = KIND(kind);
+    const good = kind === 'ride' || kind === 'fudge';
+    const d = document.createElement('div');
+    d.className = 'warn';
+    d.style.bottom = `calc(24% + ${k.lift + k.h / 2 - 13}px)`;
+    d.innerHTML = `<svg width="26" height="26" viewBox="0 0 26 26">
+        <path d="M 22 4 L 22 22 L 5 13 Z" fill="${good ? '#f4b32c' : '#ef4444'}"
+              stroke="#241F2E" stroke-width="3" stroke-linejoin="round"/></svg>`;
+    gameEl.appendChild(d);
+    const t = setTimeout(() => {
+        d.remove();
+        warnTimers = warnTimers.filter(x => x !== t);
+        if (world.running) addThing(kind, ahead);
+    }, WARN_TIME);
+    warnTimers.push(t);
+}
+function clearWarnings() {
+    warnTimers.forEach(clearTimeout);
+    warnTimers = [];
+    gameEl.querySelectorAll('.warn').forEach(e => e.remove());
+}
+
+const KIND = kind =>
+      kind === 'capy'  ? { html: CAPY, w: 36, h: 27, lift: 70 }
+    : kind === 'ride'  ? { html: BIG_CAPY, w: 150, h: 112, lift: 0 }
+    : kind === 'fudge' ? { html: FUDGE, w: 48, h: 52, lift: 8 }
+    : KINDS[kind];
+
 function addThing(kind, ahead = 0, lift = null) {
     const el = document.createElement('div');
     const isCapy = kind === 'capy';
-    const k = isCapy ? { html: CAPY, w: 36, h: 27 }
-            : kind === 'ride' ? { html: BIG_CAPY, w: 150, h: 112, lift: 0 }
-            : kind === 'fudge' ? { html: FUDGE, w: 48, h: 52, lift: 8 }
-            : KINDS[kind];
+    const k = KIND(kind);
     el.className = 'thing' + (isCapy ? ' coin' : '');
     el.innerHTML = k.html;
     el.style.bottom = `calc(24% + ${lift === null ? k.lift : lift}px)`;
@@ -1093,20 +1137,37 @@ muteBtn.addEventListener('click', () => {
 applySound();
 
 /* ---- input --------------------------------------------------------- */
+let hopFx = null;
 function jump() {
     if (!world.running || world.jumps > 1) return;
+    slideOff();                       // a jump gets him straight back up
+    // what this hop interrupted, in case the swipe it began asks for it back
+    world.hopFrom = { y: world.y, vy: world.vy, jumps: world.jumps };
+    world.hopGid = gid;
     world.jumpAt = world.t;
     world.held = 0; world.holding = true;
     endMove();
-    if (world.jumps === 0) {
-        world.vy = JUMP_V; world.jumps = 1;
-        play('jump'); dust();
-    } else {
-        // the blades give a second push the way a spring would
-        world.vy = BOOST_V; world.jumps = 2;
-        play('boost'); sparks();
-        hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
-    }
+    const first = world.jumps === 0;
+    world.vy = first ? JUMP_V : BOOST_V;
+    world.jumps = first ? 1 : 2;
+    // the noise and the dust wait a moment: a hop that gets handed back makes none
+    clearTimeout(hopFx);
+    hopFx = setTimeout(() => {
+        hopFx = null;
+        if (first) { play('jump'); dust(); }
+        else {
+            play('boost'); sparks();
+            hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
+        }
+    }, 70);
+}
+// undoable only if this very press made it: no timing guesswork, so a leisurely
+// swipe still hands its hop back, and a dive from an earlier jump is left alone
+const freshHop = () => world.hopFrom && world.hopGid === gid;
+function undoJump() {
+    clearTimeout(hopFx); hopFx = null;
+    Object.assign(world, world.hopFrom);
+    world.hopFrom = null; world.holding = false;
 }
 const mountEl = document.getElementById('mount');
 const rideBar = document.getElementById('ridebar');
@@ -1136,7 +1197,9 @@ function dismount() {
 
 function perform(kind) {
     // only one turn at a time
-    if (!world.running || world.sliding || world.moveT > 0) return;
+    if (!world.running || world.moveT > 0) return;
+    slideOff();                       // showtime cuts a slide short too
+    if (freshHop()) undoJump();
     if (world.y > 0) return;      // a stage move wants a floor
     world.holding = false;
     world.move = kind; world.moveT = MOVE_DUR;
@@ -1220,43 +1283,38 @@ function endMove() {
 
 function slideOn() {
     if (!world.running || world.sliding || world.riding > 0) return;
-    if (world.y > 0) return;      // on his blades, not in the air
+    // a swipe down hands back the hop its own press made, and then, if he is still
+    // up there from an earlier jump, dives for the ground to slide on landing
+    if (freshHop()) undoJump();
+    if (world.y > 0) world.vy = Math.min(world.vy, -DIVE_V);
     world.holding = false;
     world.sliding = true;
+    world.slideLeft = SLIDE_HOLD;
     endMove();
     play('slide');
     if (world.y <= 0) dust();
 }
+// a tap or a sideways swipe cuts it short; otherwise it ends on its own
 function slideOff() {
     world.sliding = false;
     hero.classList.remove('slide');
 }
 
-let gx = null, gy = null, usingTouch = false;
+let gx = null, gy = null, usingTouch = false, gid = 0;
 // A press waits a moment before it becomes a jump, so a swipe never turns into
 // one: any real movement cancels it first. A quick tap does not wait for the
 // timer — it jumps the instant the finger comes off, so tapping still feels immediate.
-const JUMP_WAIT = 110, MOVED = 6;
-let pending = null, gmoved = false;
-// once the finger has travelled at all it is a swipe, and the jump is off — the
-// flag outlives the timer, so a late first move still cancels it
-function armJump() { pending = setTimeout(() => { pending = null; if (!gmoved) jump(); }, JUMP_WAIT); }
-function dropJump() { clearTimeout(pending); pending = null; }
-
-function gestureStart(x, y) { gx = x; gy = y; gmoved = false; armJump(); }
+// The press jumps at once — no wait, so no lag — and a swipe that turns out to be
+// down or sideways hands the hop straight back. A swipe UP is a jump anyway, so it
+// needs nothing: it is already in the air by the time the finger has moved.
+function gestureStart(x, y) { gx = x; gy = y; gid++; jump(); }
 function gestureMove(x, y) {
     if (gx === null) return;
     const dx = x - gx, dy = y - gy;
-    if (Math.abs(dx) > MOVED || Math.abs(dy) > MOVED) { gmoved = true; dropJump(); }
     if (dy > 26 && dy > Math.abs(dx)) { slideOn(); gx = gy = null; }
     else if (Math.abs(dx) > 28 && Math.abs(dx) > dy) { perform(dx > 0 ? 'sing' : 'dance'); gx = gy = null; }
 }
-function gestureEnd() {
-    // a tap jumps the moment the finger lifts, so tapping stays immediate
-    if (pending && !gmoved) { dropJump(); jump(); }
-    dropJump();
-    gx = gy = null; world.holding = false; slideOff();
-}
+function gestureEnd() { gx = gy = null; world.holding = false; }
 
 // touch first, and held onto with preventDefault, so the browser cannot take the
 // swipe away halfway through; the pointer events are for a mouse or a trackpad
@@ -1294,7 +1352,6 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => {
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') world.holding = false;
-    if (e.code === 'ArrowDown' || e.code === 'KeyS') slideOff();
 });
 
 /* ---- the loop ------------------------------------------------------ */
@@ -1343,6 +1400,8 @@ function frame(now) {
     }
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
     if (world.moveT > 0 && (world.moveT = Math.max(0, world.moveT - dt)) === 0) endMove();
+    // the clock only runs once he is actually down there, so a dive is not docked
+    if (world.sliding && world.y <= 0 && (world.slideLeft -= dt) <= 0) slideOff();
     if (world.safeT > 0) world.safeT = Math.max(0, world.safeT - dt);
     if (world.riding > 0) {
         world.riding = Math.max(0, world.riding - dt);
@@ -1549,10 +1608,12 @@ function begin() {
     document.getElementById('start-card').hidden = true;
     document.getElementById('over-card').hidden = true;
     world.things.forEach(t => t.el.remove());
+    clearWarnings();
     Object.assign(world, {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
-    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
+    move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST, hopFrom: null, hopGid: -1,
+    slideLeft: 0,
     score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
         spawnIn: 520, things: [], t: 0
     });
