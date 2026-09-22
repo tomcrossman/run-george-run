@@ -14,7 +14,7 @@ Open `index.html`, or visit the hosted version.
 - **Tap** to jump. **Hold** for a bigger one.
 - **Tap again in the air** for a blade boost — the second jump.
 - **Swipe down** (or press ↓) to slide under anything flying low.
-- Crates and spikes want jumping. Drones want sliding. Bolts want collecting.
+- Crates and spikes want jumping. Drones want sliding. Capybaras want collecting.
 
 It gets faster the longer you last, and your best distance is kept on the device.
 
