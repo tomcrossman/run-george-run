@@ -242,11 +242,12 @@ body {
 #hud {
     position: absolute; top: 0; left: 0; right: 0; z-index: 8;
     display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 12px 14px; pointer-events: none;
+    gap: 5px; padding: 12px 8px; pointer-events: none;
 }
 .plate {
-    font-family: var(--font-display); font-size: 26px; letter-spacing: .02em;
-    padding: 4px 12px 2px;
+    display: flex; align-items: center; gap: 5px; min-width: 0;
+    font-family: var(--font-display); font-size: clamp(19px, 5.6vw, 26px); letter-spacing: .02em;
+    padding: 4px 8px 2px;
     background: var(--panel); border: 3px solid var(--ink); border-radius: 13px;
     box-shadow: var(--pop);
 }
@@ -318,7 +319,17 @@ body {
 .tally span:first-child { font-family: var(--font); font-size: 13px; font-weight: 900;
                           letter-spacing: .05em; opacity: .66; white-space: nowrap; }
 .ico { fill: currentColor; width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; }
-.plate .cap .ico { width: 11px; height: 11px; vertical-align: -2px; margin-right: 3px; }
+.plate .ico { width: 18px; height: 18px; flex: none; margin: 1px 0 0; opacity: .7; }
+.plate.mid .ico { width: 15px; height: 15px; }
+/* on a phone the icons carry the meaning on their own, and the words come off */
+@media (max-width: 430px) {
+    .plate .cap { display: none; }
+    .plate .ico { width: 15px; height: 15px; margin: 0; }
+    .plate.mid { font-size: 19px; }
+    .plate.mid .ico { width: 13px; height: 13px; }
+    #mute { padding: 5px 6px 2px; }
+    #mute svg { width: 19px; height: 19px; }
+}
 .best { color: var(--gold); }
 #version { position: absolute; bottom: 8px; right: 10px; z-index: 8;
            font-size: 9px; font-weight: 800; letter-spacing: .1em; opacity: .35; }
@@ -434,9 +445,9 @@ body {
     <div id="flash"></div>
 
     <div id="hud">
-        <div class="plate"><span class="cap"><svg class="ico"><use href="#i-flag"/></svg>Metres</span><span id="dist">0</span></div>
-        <div class="plate mid" id="bestplate"><span class="cap"><svg class="ico"><use href="#i-star"/></svg>Best</span><span id="best-val">0</span></div>
-        <div class="plate" id="coins"><span class="cap"><svg class="ico"><use href="#i-capy"/></svg>Capybaras</span><span id="coin-count">0</span></div>
+        <div class="plate"><svg class="ico"><use href="#i-flag"/></svg><span><span class="cap">Metres</span><span id="dist">0</span></span></div>
+        <div class="plate mid" id="bestplate"><svg class="ico"><use href="#i-star"/></svg><span><span class="cap">Best</span><span id="best-val">0</span></span></div>
+        <div class="plate" id="coins"><svg class="ico"><use href="#i-capy"/></svg><span><span class="cap">Capybaras</span><span id="coin-count">0</span></span></div>
         <button id="mute" aria-label="Sound on or off">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#241F2E"
                  stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -479,7 +490,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v11';
+const APP_VERSION = 'v12';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
