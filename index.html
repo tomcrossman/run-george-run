@@ -251,10 +251,11 @@ body {
 /* ============================================================
    SPEED, DUST AND IMPACT
    ============================================================ */
+/* these only read as speed if they move: standing still they look like seams */
 #speedlines {
     position: absolute; inset: 0; z-index: 7; pointer-events: none; opacity: 0;
     background: repeating-linear-gradient(90deg,
-        rgba(255,255,255,.75) 0 2px, transparent 2px 120px);
+        rgba(255,255,255,.55) 0 1.5px, transparent 1.5px 120px);
     transition: opacity .2s;
 }
 #flash {
@@ -263,6 +264,11 @@ body {
 }
 .note {
     position: absolute; z-index: 6; pointer-events: none;
+}
+/* struck off the blades when the boost fires */
+.spark {
+    position: absolute; z-index: 6; pointer-events: none;
+    border-radius: 50%; border: 2.5px solid var(--ink);
 }
 .dust {
     position: absolute; bottom: 24%; z-index: 4; pointer-events: none;
@@ -644,7 +650,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v27';
+const APP_VERSION = 'v28';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -652,7 +658,8 @@ document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}
    ============================================================ */
 function cloudsSVG() {
     let s = '<svg viewBox="0 0 800 200" preserveAspectRatio="none">';
-    const clusters = [[70, 118], [300, 138], [545, 108], [700, 132]];
+    // every shape stays inside the 800 so the copies meet cleanly
+    const clusters = [[110, 118], [320, 138], [545, 108], [700, 132]];
     clusters.forEach(([x, y]) => {
         s += `<g fill="#ffffff" opacity=".95">
             <ellipse cx="${x}" cy="${y}" rx="62" ry="30"/>
@@ -667,18 +674,20 @@ function cloudsSVG() {
 }
 function hillsSVG() {
     return `<svg viewBox="0 0 800 200" preserveAspectRatio="none">
-        <path d="M 0 200 L 0 120 C 80 60, 150 60, 220 120 C 280 80, 340 74, 400 122
-                 C 470 56, 560 58, 640 126 C 700 90, 750 96, 800 124 L 800 200 Z"
+        <path d="M 0 200 L 0 122 C 80 60, 150 60, 220 120 C 280 80, 340 74, 400 122
+                 C 470 56, 560 58, 640 126 C 700 90, 750 96, 800 122 L 800 200 Z"
               fill="#a9c7e4"/>
         <path d="M 0 200 L 0 160 C 90 116, 170 122, 250 160 C 330 120, 420 118, 500 158
-                 C 590 122, 680 126, 800 162 L 800 200 Z" fill="#86b0d6"/>
+                 C 590 122, 680 126, 800 160 L 800 200 Z" fill="#86b0d6"/>
     </svg>`;
 }
 /* a treeline of simple pines — cheap, and it sells the speed */
 function treesSVG() {
     let s = '<svg viewBox="0 0 800 200" preserveAspectRatio="none">';
-    for (let i = 0; i < 12; i++) {
-        const x = 20 + i * 68 + (i % 3) * 9;
+    // ten trees on an 80 grid: the spacing carries across the seam, and nothing
+    // sits close enough to an edge to be cut in half by it
+    for (let i = 0; i < 10; i++) {
+        const x = 40 + i * 80;
         const h = 96 + (i % 4) * 22;
         s += `<path d="M ${x} 200 L ${x} ${200 - h * .28}" stroke="#4d6b57" stroke-width="9"/>
               <path d="M ${x - 30} ${200 - h * .22} L ${x} ${200 - h} L ${x + 30} ${200 - h * .22} Z"
@@ -902,6 +911,7 @@ const MOVE_PULL = 320;           // and how far away the capybaras can hear it
 const HOLD_MAX = .22;            // for this long at most
 
 const hero = document.getElementById('hero');
+const speedEl = document.getElementById('speedlines');
 const gameEl = document.getElementById('game');
 
 const world = {
@@ -1048,6 +1058,24 @@ function addThing(kind, ahead = 0, lift = null) {
                        lift: lift === null ? k.lift : lift, dead: false });
 }
 
+function sparks(n = 8) {
+    const r = hero.getBoundingClientRect();
+    for (let i = 0; i < n; i++) {
+        const d = document.createElement('div');
+        const size = 9 + Math.random() * 7;
+        d.className = 'spark';
+        d.style.width = d.style.height = `${size}px`;
+        d.style.background = i % 4 === 0 ? '#fff6d8' : i % 3 ? '#f4b32c' : '#ef7a2c';
+        d.style.left = `${r.left + r.width * (.3 + Math.random() * .34)}px`;
+        d.style.top = `${r.bottom - 14 - Math.random() * 20}px`;
+        gameEl.appendChild(d);
+        const back = -24 - Math.random() * 80, down = 14 + Math.random() * 60;
+        d.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 },
+                   { transform: `translate(${back}px, ${down}px) scale(.3)`, opacity: 0 }],
+                  { duration: 340 + Math.random() * 220, easing: 'ease-out', fill: 'forwards' });
+        setTimeout(() => d.remove(), 600);
+    }
+}
 function dust() {
     const r = hero.getBoundingClientRect();
     const d = document.createElement('div');
@@ -1084,7 +1112,7 @@ function jump() {
     } else if (world.jumps === 1) {
         // the blades give a second push the way a spring would
         world.vy = BOOST_V; world.jumps = 2; world.held = 0; world.holding = true;
-        play('boost');
+        play('boost'); sparks();
         hero.animate([{ filter: 'brightness(1.8)' }, { filter: 'brightness(1)' }], { duration: 220 });
     }
 }
@@ -1273,7 +1301,7 @@ addEventListener('keyup', e => {
 });
 
 /* ---- the loop ------------------------------------------------------ */
-let last = 0, offsets = { clouds: 0, hills: 0, trees: 0, ground: 0 };
+let last = 0, offsets = { clouds: 0, hills: 0, trees: 0, ground: 0, speed: 0 };
 function frame(now) {
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
@@ -1340,14 +1368,19 @@ function frame(now) {
 
     // the backdrop, each layer at its own fraction of the pace
     const px = world.speed * (world.riding > 0 ? RIDE_SPEED : 1) * dt;
-    offsets.clouds = (offsets.clouds + px * .08) % (gameEl.clientWidth * 2);
-    offsets.hills  = (offsets.hills  + px * .22) % (gameEl.clientWidth * 2);
-    offsets.trees  = (offsets.trees  + px * .55) % (gameEl.clientWidth * 2);
+    // each strip is the same picture twice, so it repeats after ONE copy: wrapping
+    // at the strip's full width ran the second copy off and left empty sky behind it
+    const span = gameEl.clientWidth;
+    offsets.clouds = (offsets.clouds + px * .08) % span;
+    offsets.hills  = (offsets.hills  + px * .22) % span;
+    offsets.trees  = (offsets.trees  + px * .55) % span;
     offsets.ground = (offsets.ground + px) % 46;
+    offsets.speed  = (offsets.speed  + px * 1.7) % 120;
     document.getElementById('clouds-strip').style.transform = `translateX(${-offsets.clouds}px)`;
     document.getElementById('hills-strip').style.transform  = `translateX(${-offsets.hills}px)`;
     document.getElementById('trees-strip').style.transform  = `translateX(${-offsets.trees}px)`;
     document.getElementById('ground').style.backgroundPositionX = `${-offsets.ground}px`;
+    speedEl.style.backgroundPositionX = `${-offsets.speed}px`;
 
     // things move, get collected, or end the run
     const hb = heroBox();
