@@ -95,7 +95,8 @@ body {
 
 .leg-a, .leg-b, .arm-a, .arm-b, .torso { transform-box: fill-box; }
 .leg-a, .leg-b { transform-origin: 46% 4%; }
-.arm-a, .arm-b { transform-origin: 50% 6%; }
+.arm-a { transform-origin: 33% 2%; }
+.arm-b { transform-origin: 37% 2%; }
 
 /* running: the blades swing, the arms counter, the body bobs */
 #hero.run .leg-a { animation: swingA var(--cyc) ease-in-out infinite; }
@@ -283,7 +284,8 @@ body {
                     <g transform="translate(47,97)"><use href="#blade"/></g>
                 </g>
                 <g class="arm-b" opacity=".82">
-                    <path d="M 54 50 L 47 60 L 52 68" fill="none" stroke="#F0B892" stroke-width="7.5"/>
+                    <path d="M 54 50 L 50.5 61 L 60 61.5" fill="none" stroke="#F0B892"
+                          stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </g>
 
                 <g class="torso" transform="rotate(-5 53 70)">
@@ -291,6 +293,10 @@ body {
                     <path d="M 45 42 C 44 36, 62 36, 61 42 L 62 68 L 44 68 Z" fill="#2FA8E0" stroke-width="2.4"/>
                     <path d="M 47 44 L 48 66" stroke="#1C82B4" stroke-width="4" opacity=".5"/>
                     <circle cx="58" cy="28" r="11.5" fill="#FFDCC0" stroke-width="2.4"/>
+                    <path d="M 46.2 29 C 45.6 19.4, 51.4 15.2, 58 15.2
+                             C 65 15.2, 70.2 19.4, 70.2 25.6 C 69 23.4, 67.6 24.4, 66.2 22.4
+                             C 64 21.6, 59 20.6, 54.4 22.2 C 50.6 23.6, 48 26.4, 46.2 29 Z"
+                          fill="#F2C75C" stroke-width="2.2"/>
                     <path d="M 54 18 C 44 19, 36 25, 33 34 C 39 31, 44 30, 49 30.5
                              C 42 34, 37 39, 35 45 C 43 40, 49 38, 54 38.5 Z"
                           fill="#F2C75C" stroke-width="2.2"/>
@@ -306,7 +312,8 @@ body {
                     </g>
                 </g>
 
-                <g class="arm-a"><path d="M 58 50 L 67 58 L 63 67" fill="none" stroke="#FFDCC0" stroke-width="8"/></g>
+                <g class="arm-a"><path d="M 58 50 L 54.5 62 L 65 62.5" fill="none" stroke="#FFDCC0"
+                                        stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g>
                 <g class="leg-a">
                     <path d="M 55 78 L 58 95" stroke="#FFDCC0" stroke-width="10.5"/>
                     <rect x="52.5" y="93" width="11" height="9" rx="3" fill="#39415A" stroke-width="2.2"/>
@@ -354,7 +361,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v4';
+const APP_VERSION = 'v5';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
