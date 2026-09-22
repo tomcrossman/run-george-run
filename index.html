@@ -251,13 +251,6 @@ body {
 /* ============================================================
    SPEED, DUST AND IMPACT
    ============================================================ */
-/* these only read as speed if they move: standing still they look like seams */
-#speedlines {
-    position: absolute; inset: 0; z-index: 7; pointer-events: none; opacity: 0;
-    background: repeating-linear-gradient(90deg,
-        rgba(255,255,255,.55) 0 1.5px, transparent 1.5px 120px);
-    transition: opacity .2s;
-}
 #flash {
     position: absolute; inset: 0; z-index: 9; pointer-events: none;
     background: #fff; opacity: 0;
@@ -601,7 +594,6 @@ body {
 
     <div id="mount"></div>
     <div id="ridebar"><svg class="ico"><use href="#i-capy"/></svg><span class="track"><i></i></span></div>
-    <div id="speedlines"></div>
     <div id="flash"></div>
 
     <div id="hud">
@@ -650,7 +642,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v28';
+const APP_VERSION = 'v29';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -911,7 +903,6 @@ const MOVE_PULL = 320;           // and how far away the capybaras can hear it
 const HOLD_MAX = .22;            // for this long at most
 
 const hero = document.getElementById('hero');
-const speedEl = document.getElementById('speedlines');
 const gameEl = document.getElementById('game');
 
 const world = {
@@ -1301,7 +1292,7 @@ addEventListener('keyup', e => {
 });
 
 /* ---- the loop ------------------------------------------------------ */
-let last = 0, offsets = { clouds: 0, hills: 0, trees: 0, ground: 0, speed: 0 };
+let last = 0, offsets = { clouds: 0, hills: 0, trees: 0, ground: 0 };
 function frame(now) {
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
@@ -1375,12 +1366,10 @@ function frame(now) {
     offsets.hills  = (offsets.hills  + px * .22) % span;
     offsets.trees  = (offsets.trees  + px * .55) % span;
     offsets.ground = (offsets.ground + px) % 46;
-    offsets.speed  = (offsets.speed  + px * 1.7) % 120;
     document.getElementById('clouds-strip').style.transform = `translateX(${-offsets.clouds}px)`;
     document.getElementById('hills-strip').style.transform  = `translateX(${-offsets.hills}px)`;
     document.getElementById('trees-strip').style.transform  = `translateX(${-offsets.trees}px)`;
     document.getElementById('ground').style.backgroundPositionX = `${-offsets.ground}px`;
-    speedEl.style.backgroundPositionX = `${-offsets.speed}px`;
 
     // things move, get collected, or end the run
     const hb = heroBox();
@@ -1438,7 +1427,6 @@ function frame(now) {
     scoreEl.textContent = fmt(sc);
     document.getElementById('best-val').textContent = fmt(Math.max(best, sc));
     document.getElementById('bestplate').classList.toggle('beating', sc > best && best > 0);
-    document.getElementById('speedlines').style.opacity = world.speed > 560 ? .5 : 0;
 }
 requestAnimationFrame(frame);
 
