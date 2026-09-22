@@ -1,5 +1,5 @@
 /* Cache the game so it keeps running with no signal. Bump CACHE on release. */
-const CACHE = 'run-george-run-v20';
+const CACHE = 'run-george-run-v21';
 const ASSETS = ['./', './index.html', './manifest.webmanifest',
                 './icon-192.png', './icon-512.png'];
 
