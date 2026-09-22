@@ -139,9 +139,10 @@ body {
 #hero.dance .leg-a { transform: rotate(-30deg); }
 #hero.dance .leg-b { transform: rotate(26deg); }
 
-/* sat on the capybara: legs down its near side, one hand on the scruff */
+/* sat on the capybara: the near leg down its flank, the far one hidden behind it,
+   and a hand forward on the scruff */
 #hero.ride .leg-a { transform: rotate(-8deg); }
-#hero.ride .leg-b { transform: rotate(4deg); }
+#hero.ride .leg-b { display: none; }
 #hero.ride .arm-a { transform: rotate(-30deg); }
 #hero.ride .arm-b { transform: rotate(-12deg); }
 #hero.ride .torso { transform: rotate(-4deg); }
@@ -478,7 +479,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v10';
+const APP_VERSION = 'v11';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
