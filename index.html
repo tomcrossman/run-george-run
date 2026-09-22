@@ -48,7 +48,7 @@ body {
 /* ============================================================
    THE WORLD — layers that scroll at their own speed
    ============================================================ */
-#game { position: fixed; inset: 0; overflow: hidden; }
+#game { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
 
 .layer { position: absolute; left: 0; width: 100%; will-change: transform; }
 
@@ -200,13 +200,24 @@ body {
 #mount svg { display: block; width: 100%; height: auto; animation: trot .3s ease-in-out infinite; }
 
 #ridebar {
-    position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 8;
-    width: 168px; height: 12px; padding: 2px; display: none;
-    background: var(--panel); border: 3px solid var(--ink); border-radius: 8px;
+    position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 8;
+    width: min(270px, 78vw); padding: 4px 6px; display: none;
+    align-items: center; gap: 7px;
+    background: var(--panel); border: 3.5px solid var(--ink); border-radius: 14px;
     box-shadow: var(--pop);
 }
-#ridebar.on { display: block; }
-#ridebar i { display: block; height: 100%; width: 100%; border-radius: 4px; background: var(--gold); }
+#ridebar.on { display: flex; }
+#ridebar .ico { width: 20px; height: 20px; flex: none; fill: var(--ink); }
+#ridebar .track {
+    flex: 1; height: 16px; border-radius: 8px; overflow: hidden;
+    background: rgba(36,31,46,.12); border: 2px solid var(--ink);
+}
+#ridebar i { display: block; height: 100%; width: 100%; background: var(--gold); }
+/* when it is nearly over, it says so */
+#ridebar.low { animation: lowPulse .3s ease-in-out infinite alternate; }
+#ridebar.low i { background: var(--danger); }
+@keyframes lowPulse { from { transform: translateX(-50%) scale(1); }
+                      to   { transform: translateX(-50%) scale(1.06); } }
 @keyframes coinPop { to { transform: translateY(-40px) scale(1.5); opacity: 0; } }
 
 /* ============================================================
@@ -440,7 +451,7 @@ body {
     </div>
 
     <div id="mount"></div>
-    <div id="ridebar"><i></i></div>
+    <div id="ridebar"><svg class="ico"><use href="#i-capy"/></svg><span class="track"><i></i></span></div>
     <div id="speedlines"></div>
     <div id="flash"></div>
 
@@ -490,7 +501,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v12';
+const APP_VERSION = 'v13';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -724,6 +735,7 @@ const world = {
     spawnIn: 420, things: [], t: 0
 };
 
+const fmt = n => Math.round(n).toLocaleString('en-GB');
 const bestKey = 'rgr-best';
 let best = 0;
 try { best = parseInt(localStorage.getItem(bestKey) || '0', 10) || 0; } catch (e) { best = 0; }
@@ -863,6 +875,7 @@ function jump() {
 }
 const mountEl = document.getElementById('mount');
 const rideBar = document.getElementById('ridebar');
+const rideFill = rideBar.querySelector('i');
 mountEl.innerHTML = CAPY.replace('width="36" height="27"', 'width="150" height="112"');
 
 function mount() {
@@ -875,7 +888,7 @@ function mount() {
 }
 function dismount() {
     world.riding = 0;
-    rideBar.classList.remove('on');
+    rideBar.classList.remove('on', 'low');
     // it peels off and drops behind him
     mountEl.animate([{ transform: 'translateX(0)', opacity: 1 },
                      { transform: 'translateX(-280px)', opacity: 0 }],
@@ -884,12 +897,12 @@ function dismount() {
 }
 
 function perform(kind) {
-    // only on his blades, and only one turn at a time
-    if (!world.running || world.y > 0 || world.sliding || world.moveT > 0 || world.riding > 0) return;
-    // the press that began the swipe already asked for a jump; take it back
-    if (world.jumps === 1 && world.t - world.jumpAt < .22) {
-        world.y = 0; world.vy = 0; world.jumps = 0;
-    }
+    // only one turn at a time
+    if (!world.running || world.sliding || world.moveT > 0 || world.riding > 0) return;
+    // the press that began the swipe already asked for a jump, and a finger takes a
+    // moment to travel — so take the jump back first, then check he is on the ground
+    if (freshJump()) { world.y = 0; world.vy = 0; world.jumps = 0; }
+    if (world.y > 0) return;
     world.holding = false;
     world.move = kind; world.moveT = MOVE_DUR;
     play(kind);
@@ -917,11 +930,14 @@ function notes(n) {
 }
 function endMove() { world.move = null; world.moveT = 0; }
 
+// a jump from the press that started a swipe, close enough behind to undo
+const freshJump = () => world.jumps === 1 && world.vy > 0 && world.t - world.jumpAt < .32;
+
 function slideOn() {
     if (!world.running || world.sliding || world.riding > 0) return;
     // every swipe starts with a press, and that press already asked for a jump.
     // take it back if it was only a beat ago, so the slide stays on the ground
-    if (world.jumps === 1 && world.t - world.jumpAt < .22) {
+    if (freshJump()) {
         world.y = 0; world.vy = 0; world.jumps = 0;
     } else if (world.y > 0) {
         world.vy = Math.min(world.vy, -DIVE_V);   // already up there: dive for it
@@ -937,19 +953,43 @@ function slideOff() {
     hero.classList.remove('slide');
 }
 
-let touchX = null, touchY = null;
-addEventListener('pointerdown', e => {
+let gx = null, gy = null, usingTouch = false;
+function gestureStart(x, y) { gx = x; gy = y; jump(); }
+function gestureMove(x, y) {
+    if (gx === null) return;
+    const dx = x - gx, dy = y - gy;
+    if (dy > 26 && dy > Math.abs(dx)) { slideOn(); gx = gy = null; }
+    else if (Math.abs(dx) > 28 && Math.abs(dx) > dy) { perform(dx > 0 ? 'sing' : 'dance'); gx = gy = null; }
+}
+function gestureEnd() { gx = gy = null; world.holding = false; slideOff(); }
+
+// touch first, and held onto with preventDefault, so the browser cannot take the
+// swipe away halfway through; the pointer events are for a mouse or a trackpad
+addEventListener('touchstart', e => {
     if (e.target.closest('.btn, #mute')) return;
-    touchX = e.clientX; touchY = e.clientY;
-    jump();
+    usingTouch = true;
+    e.preventDefault();
+    gestureStart(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+addEventListener('touchmove', e => {
+    if (gx === null) return;
+    e.preventDefault();
+    gestureMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+addEventListener('touchend', gestureEnd);
+addEventListener('touchcancel', gestureEnd);
+// pointerdown arrives before touchstart, so a finger is waved off by its own type
+addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') { usingTouch = true; return; }
+    if (usingTouch || e.target.closest('.btn, #mute')) return;
+    gestureStart(e.clientX, e.clientY);
 });
 addEventListener('pointermove', e => {
-    if (touchY === null) return;
-    const dx = e.clientX - touchX, dy = e.clientY - touchY;
-    if (dy > 26 && dy > Math.abs(dx)) { slideOn(); touchX = touchY = null; }
-    else if (Math.abs(dx) > 34 && Math.abs(dx) > dy) { perform(dx > 0 ? 'sing' : 'dance'); touchX = touchY = null; }
+    if (e.pointerType !== 'touch' && !usingTouch) gestureMove(e.clientX, e.clientY);
 });
-addEventListener('pointerup', () => { touchX = touchY = null; world.holding = false; slideOff(); });
+addEventListener('pointerup', e => {
+    if (e.pointerType !== 'touch' && !usingTouch) gestureEnd();
+});
 addEventListener('keydown', e => {
     if (e.repeat) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); jump(); }
@@ -999,7 +1039,8 @@ function frame(now) {
     if (world.moveT > 0 && (world.moveT = Math.max(0, world.moveT - dt)) === 0) endMove();
     if (world.riding > 0) {
         world.riding = Math.max(0, world.riding - dt);
-        rideBar.firstElementChild.style.width = `${world.riding / RIDE_TIME * 100}%`;
+        rideFill.style.width = `${world.riding / RIDE_TIME * 100}%`;
+        rideBar.classList.toggle('low', world.riding < 2);
         if (world.riding === 0) dismount();
     }
     // he climbs on and steps off over a moment, rather than teleporting
@@ -1044,7 +1085,7 @@ function frame(now) {
         if (t.kind === 'capy') {
             t.dead = true; t.el.classList.add('pop');
             world.coins++; play('coin');
-            document.getElementById('coin-count').textContent = world.coins;
+            document.getElementById('coin-count').textContent = fmt(world.coins);
         } else if (t.kind === 'ride') {
             t.dead = true; t.el.remove();
             mount();
@@ -1070,8 +1111,8 @@ function frame(now) {
     }
 
     const m = Math.floor(world.dist);
-    document.getElementById('dist').textContent = m;
-    document.getElementById('best-val').textContent = Math.max(best, m);
+    document.getElementById('dist').textContent = fmt(m);
+    document.getElementById('best-val').textContent = fmt(Math.max(best, m));
     document.getElementById('bestplate').classList.toggle('beating', m > best && best > 0);
     document.getElementById('speedlines').style.opacity = world.speed > 560 ? .5 : 0;
 }
@@ -1113,10 +1154,10 @@ function crash(kind) {
     }
     document.getElementById('over-title').textContent = score >= best && score > 0 ? 'Best yet!' : 'Ouch!';
     document.getElementById('over-line').textContent = KINDS[kind].line;
-    document.getElementById('over-dist').textContent = score;
-    document.getElementById('over-coins').textContent = world.coins;
-    document.getElementById('over-best').textContent = best;
-    document.getElementById('best-val').textContent = best;
+    document.getElementById('over-dist').textContent = fmt(score);
+    document.getElementById('over-coins').textContent = fmt(world.coins);
+    document.getElementById('over-best').textContent = fmt(best);
+    document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
     setTimeout(() => { document.getElementById('over-card').hidden = false; }, 700);
 }
@@ -1134,10 +1175,10 @@ function begin() {
     hero.className = 'run';
     hero.classList.remove('hurt', 'lost');
     mountEl.classList.remove('on');
-    rideBar.classList.remove('on');
+    rideBar.classList.remove('on', 'low');
     hero.style.transform = 'translateY(0)';
     document.getElementById('dist').textContent = '0';
-    document.getElementById('best-val').textContent = best;
+    document.getElementById('best-val').textContent = fmt(best);
     document.getElementById('bestplate').classList.remove('beating');
     document.getElementById('coin-count').textContent = '0';
     startMusic();
