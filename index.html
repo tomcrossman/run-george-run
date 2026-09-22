@@ -139,6 +139,20 @@ body {
 #hero.dance .leg-a { transform: rotate(-30deg); }
 #hero.dance .leg-b { transform: rotate(26deg); }
 
+/* a turn on stage from the saddle: he performs, and so does the capybara */
+#hero.ride.sing .arm-a { transform: rotate(-104deg); }
+#hero.ride.sing .arm-b { transform: rotate(38deg); }
+#hero.ride.sing .torso { transform: rotate(4deg); }
+#hero.ride.dance .arm-a { transform: rotate(-74deg); }
+#hero.ride.dance .arm-b { transform: rotate(56deg); }
+#hero.ride.dance .torso { transform: rotate(-9deg); }
+#mount.dance svg { animation: capyDance .22s ease-in-out infinite alternate; }
+#mount.sing svg { animation: capySing .3s ease-in-out infinite alternate; }
+@keyframes capyDance { from { transform: translateY(0) rotate(-3deg); }
+                       to   { transform: translateY(-7px) rotate(3deg); } }
+@keyframes capySing  { from { transform: translateY(0) scaleY(1); }
+                       to   { transform: translateY(-3px) scaleY(1.05); } }
+
 /* sat on the capybara: the near leg down its flank, the far one hidden behind it,
    and a hand forward on the scruff */
 #hero.ride .leg-a { transform: rotate(-8deg); }
@@ -148,6 +162,12 @@ body {
 #hero.ride .torso { transform: rotate(-4deg); }
 
 /* knocked out, the way a knocked-out hand looks in Fingaz */
+#buddy { display: none; }
+#hero.carry #buddy, #hero.ride.carry #buddy, #hero.slide.carry #buddy { display: block; }
+/* while Fudge is taking the knock for him, he cannot be hit again */
+#hero.safe { animation: blink .2s steps(2) infinite; }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: .45; } 100% { opacity: 1; } }
+
 #eye-x { display: none; }
 #hero.hurt #eye-x { display: block; }
 #hero.hurt .eye { display: none; }
@@ -167,6 +187,7 @@ body {
 
 /* the hat leaves when he does */
 #hat-fly { position: absolute; z-index: 6; width: 64px; pointer-events: none; }
+#fudge-fly { position: absolute; z-index: 6; pointer-events: none; }
 
 /* ============================================================
    THINGS IN THE WAY, AND THINGS WORTH HAVING
@@ -186,6 +207,7 @@ body {
     background: var(--gold); border: 3px solid var(--ink); border-radius: 12px;
     box-shadow: var(--pop); animation: tagbob .5s ease-in-out infinite alternate;
 }
+.ride-tag.blue { background: #9CC5E4; }
 .ride-tag::after {
     content: ''; position: absolute; left: 50%; margin-left: -7px; top: 100%;
     border: 7px solid transparent; border-top-color: var(--ink);
@@ -426,6 +448,32 @@ body {
                     <rect x="41.5" y="93" width="11" height="9" rx="3" fill="#2A3040" stroke-width="2.2"/>
                     <g transform="translate(47,97)"><use href="#blade"/></g>
                 </g>
+                <g id="buddy" transform="translate(21 44) scale(.55)" opacity=".95">
+                    <g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 12.5 10 C 7 6.5, 1.5 7, 1.2 11.4 C 0.9 15.6, 6.5 17.6, 12.5 16.6 Z" fill="#9CC5E4"/>
+        <path d="M 31.5 10 C 37 6.5, 42.5 7, 42.8 11.4 C 43.1 15.6, 37.5 17.6, 31.5 16.6 Z" fill="#9CC5E4"/>
+        <path d="M 8 45 C 5 38, 6 28, 12 25 L 32 25 C 38 28, 39 38, 36 45 Z" fill="#9CC5E4"/>
+        <ellipse cx="22" cy="37" rx="8.5" ry="8" fill="#F6FAFD"/>
+        <ellipse cx="12" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
+        <ellipse cx="32" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
+        <path d="M 22 4.5 C 31 4.5, 37 10, 37 16.5 C 37 23, 31 27.5, 22 27.5
+                 C 13 27.5, 7 23, 7 16.5 C 7 10, 13 4.5, 22 4.5 Z" fill="#9CC5E4"/>
+        <path d="M 22 11.5 C 26 11.5, 28.5 14, 30.5 17 C 32.5 20, 31 25.5, 26 25.5
+                 C 23.6 25.5, 22.6 24.4, 22 23 C 21.4 24.4, 20.4 25.5, 18 25.5
+                 C 13 25.5, 11.5 20, 13.5 17 C 15.5 14, 18 11.5, 22 11.5 Z" fill="#F6FAFD"/>
+        <path d="M 22 16.6 C 20.6 15, 18.4 15.6, 18.4 17.6 C 18.4 19.4, 20.4 20.6, 22 22
+                 C 23.6 20.6, 25.6 19.4, 25.6 17.6 C 25.6 15.6, 23.4 15, 22 16.6 Z"
+              fill="#7EB8E8" stroke-width="1.6"/>
+        <circle cx="16.4" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
+        <circle cx="27.6" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
+        <circle cx="17" cy="13.1" r=".6" fill="#fff" stroke="none"/>
+        <circle cx="28.2" cy="13.1" r=".6" fill="#fff" stroke="none"/>
+        <g stroke="#8E97A3" stroke-width="1.3" fill="none">
+            <path d="M 11.5 9.5 L 15.5 12.5 M 14 8.6 L 12.8 13.4"/>
+            <path d="M 25 39 L 29 42 M 27.6 38 L 26.4 43"/>
+        </g>
+    </g>
+                </g>
                 <g class="arm-b" opacity=".82">
                     <path d="M 54 50 L 50.5 61 L 60 61.5" fill="none" stroke="#F0B892"
                           stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -505,6 +553,7 @@ body {
                 <div class="row"><span class="key">Swipe down</span> slide under it</div>
                 <div class="row"><span class="key">Swipe across</span> showtime — points, and a combo</div>
                 <div class="row"><span class="key">RIDE!</span> run into the big capybara</div>
+                <div class="row"><span class="key">FUDGE!</span> he takes one hit for you</div>
             </div>
             <button class="btn" id="go">Run!</button>
         </div>
@@ -525,7 +574,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v15';
+const APP_VERSION = 'v17';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -630,6 +679,9 @@ const SFX = {
     ride:  t => { [392, 523, 659, 784].forEach((f, i) =>
                       tone(t, { freq: f, dur: .32, type: 'triangle', vol: .2, at: i * .09 }));
                   hiss(t, { dur: .3, from: 1200, to: 500, vol: .12 }); },
+    save:  t => { [784, 1046, 1318].forEach((f, i) =>
+                      tone(t, { freq: f, dur: .26, type: 'triangle', vol: .22, at: i * .08 }));
+                  hiss(t, { dur: .2, from: 900, to: 300, vol: .14 }); },
     smash: t => { tone(t, { freq: 190, to: 60, dur: .18, type: 'sawtooth', vol: .2 });
                   hiss(t, { dur: .22, from: 2400, to: 400, vol: .2 }); },
     sing:  t => [523, 659, 784, 1046].forEach((f, i) =>
@@ -745,6 +797,9 @@ const RIDE_LIFT = 14;            // enough to sit his hips on its back
 const RIDE_FWD = -6;             // and sat back off its shoulders
 const RIDE_SPEED = 1.3;          // and how much faster the world goes by
 const RIDE_FIRST = 320, RIDE_EVERY = 620;   // metres to the first one, and between them
+const FUDGE_PTS = 175;           // he is worth a good chunk, and then a hit
+const FUDGE_FIRST = 240, FUDGE_EVERY = 520;
+const SAFE_TIME = 1.2;           // how long he is untouchable after Fudge takes a hit
 const PER_METRE = 1;             // the base earner, so a long run still counts
 const CAPY_PTS = 25, MOVE_PTS = 50, SMASH_PTS = 75;
 const COMBO_MAX = 5, COMBO_HOLD = 4;        // how high it stacks, and how long it lasts
@@ -759,7 +814,7 @@ const world = {
     running: false, speed: SPEED_MIN, dist: 0, coins: 0,
     y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
-    score: 0, mult: 1, multT: 0,
+    score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
     spawnIn: 420, things: [], t: 0
 };
 
@@ -817,6 +872,34 @@ const CAPY = `<svg width="36" height="27" viewBox="0 0 44 30">
         <circle cx="33.4" cy="14.4" r=".65" fill="#fff" stroke="none"/>
     </g></svg>`;
 
+// Fudge, who is not an obstacle and is worth more than points
+const FUDGE = `<svg width="48" height="52" viewBox="0 0 44 48">
+    <g stroke="#241F2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M 12.5 10 C 7 6.5, 1.5 7, 1.2 11.4 C 0.9 15.6, 6.5 17.6, 12.5 16.6 Z" fill="#9CC5E4"/>
+        <path d="M 31.5 10 C 37 6.5, 42.5 7, 42.8 11.4 C 43.1 15.6, 37.5 17.6, 31.5 16.6 Z" fill="#9CC5E4"/>
+        <path d="M 8 45 C 5 38, 6 28, 12 25 L 32 25 C 38 28, 39 38, 36 45 Z" fill="#9CC5E4"/>
+        <ellipse cx="22" cy="37" rx="8.5" ry="8" fill="#F6FAFD"/>
+        <ellipse cx="12" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
+        <ellipse cx="32" cy="44.5" rx="5.5" ry="3.4" fill="#9CC5E4"/>
+        <path d="M 22 4.5 C 31 4.5, 37 10, 37 16.5 C 37 23, 31 27.5, 22 27.5
+                 C 13 27.5, 7 23, 7 16.5 C 7 10, 13 4.5, 22 4.5 Z" fill="#9CC5E4"/>
+        <path d="M 22 11.5 C 26 11.5, 28.5 14, 30.5 17 C 32.5 20, 31 25.5, 26 25.5
+                 C 23.6 25.5, 22.6 24.4, 22 23 C 21.4 24.4, 20.4 25.5, 18 25.5
+                 C 13 25.5, 11.5 20, 13.5 17 C 15.5 14, 18 11.5, 22 11.5 Z" fill="#F6FAFD"/>
+        <path d="M 22 16.6 C 20.6 15, 18.4 15.6, 18.4 17.6 C 18.4 19.4, 20.4 20.6, 22 22
+                 C 23.6 20.6, 25.6 19.4, 25.6 17.6 C 25.6 15.6, 23.4 15, 22 16.6 Z"
+              fill="#7EB8E8" stroke-width="1.6"/>
+        <circle cx="16.4" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
+        <circle cx="27.6" cy="13.8" r="1.9" fill="#241F2E" stroke="none"/>
+        <circle cx="17" cy="13.1" r=".6" fill="#fff" stroke="none"/>
+        <circle cx="28.2" cy="13.1" r=".6" fill="#fff" stroke="none"/>
+        <g stroke="#8E97A3" stroke-width="1.3" fill="none">
+            <path d="M 11.5 9.5 L 15.5 12.5 M 14 8.6 L 12.8 13.4"/>
+            <path d="M 25 39 L 29 42 M 27.6 38 L 26.4 43"/>
+        </g>
+    </g></svg>
+    <div class="ride-tag blue">FUDGE!</div>`;
+
 // the same capybara, grown up enough to sit on
 const BIG_CAPY = CAPY.replace('width="36" height="27"', 'width="150" height="112"')
                      + '<div class="ride-tag">RIDE!</div>';
@@ -833,6 +916,10 @@ function spawn() {
     if (world.riding === 0 && world.dist > world.rideAt) {
         world.rideAt = world.dist + RIDE_EVERY + Math.random() * 300;
         return addThing('ride');
+    }
+    if (!world.carry && world.dist > world.fudgeAt) {
+        world.fudgeAt = world.dist + FUDGE_EVERY + Math.random() * 260;
+        return addThing('fudge');
     }
     const roll = Math.random();
     // drones only once there is enough speed for a slide to feel worth it
@@ -852,6 +939,7 @@ function addThing(kind, ahead = 0, lift = null) {
     const isCapy = kind === 'capy';
     const k = isCapy ? { html: CAPY, w: 36, h: 27 }
             : kind === 'ride' ? { html: BIG_CAPY, w: 150, h: 112, lift: 0 }
+            : kind === 'fudge' ? { html: FUDGE, w: 48, h: 52, lift: 8 }
             : KINDS[kind];
     el.className = 'thing' + (isCapy ? ' coin' : '');
     el.innerHTML = k.html;
@@ -926,7 +1014,7 @@ function dismount() {
 
 function perform(kind) {
     // only one turn at a time
-    if (!world.running || world.sliding || world.moveT > 0 || world.riding > 0) return;
+    if (!world.running || world.sliding || world.moveT > 0) return;
     // the press that began the swipe already asked for a jump, and a finger takes a
     // moment to travel — so take the jump back first, then check he is on the ground
     if (freshJump()) { world.y = 0; world.vy = 0; world.jumps = 0; }
@@ -988,7 +1076,10 @@ function notes(n) {
         setTimeout(() => d.remove(), 1000 + i * 70);
     }
 }
-function endMove() { world.move = null; world.moveT = 0; }
+function endMove() {
+    world.move = null; world.moveT = 0;
+    mountEl.classList.remove('dance', 'sing');
+}
 
 // a jump from the press that started a swipe, close enough behind to undo
 const freshJump = () => world.jumps === 1 && world.vy > 0 && world.t - world.jumpAt < .32;
@@ -1095,13 +1186,19 @@ function frame(now) {
     world.slideT = Math.max(0, Math.min(1, world.slideT + dt / (down ? SLIDE_IN : -SLIDE_OUT)));
     const s = world.slideT;
     // the dance is a pirouette: a turn on the spot, about his own axis
-    const spin = world.move === 'dance' ? Math.cos(2 * Math.PI * (1 - world.moveT / MOVE_DUR)) : 1;
+    const spin = world.move === 'dance' && world.riding === 0
+        ? Math.cos(2 * Math.PI * (1 - world.moveT / MOVE_DUR)) : 1;
     hero.style.transform = `translate(${RIDE_FWD * world.rideT}px, ${-(world.y + RIDE_LIFT * world.rideT)}px)`
         + (s > 0 ? ` translate(${SLIDE_X * s}px, ${SLIDE_Y * s}px) rotate(${SLIDE_DEG * s}deg)` : '')
         + (spin < 1 ? ` scaleX(${Math.sign(spin) * Math.max(.34, Math.abs(spin))})` : '');
-    if (world.riding > 0) mountEl.style.transform = `translateY(${-world.y}px)`;
+    if (world.riding > 0) {
+        mountEl.style.transform = `translateY(${-world.y}px)`;
+        mountEl.classList.toggle('dance', world.move === 'dance');
+        mountEl.classList.toggle('sing', world.move === 'sing');
+    }
     hero.style.setProperty('--cyc', `${Math.max(.22, 150 / world.speed)}s`);
     if (world.moveT > 0 && (world.moveT = Math.max(0, world.moveT - dt)) === 0) endMove();
+    if (world.safeT > 0) world.safeT = Math.max(0, world.safeT - dt);
     if (world.riding > 0) {
         world.riding = Math.max(0, world.riding - dt);
         rideFill.style.width = `${world.riding / RIDE_TIME * 100}%`;
@@ -1111,8 +1208,10 @@ function frame(now) {
     // he climbs on and steps off over a moment, rather than teleporting
     world.rideT = Math.max(0, Math.min(1, world.rideT + dt / (world.riding > 0 ? .18 : -.22)));
 
-    const lost = hero.classList.contains('lost') ? ' lost' : '';
-    if (world.rideT > .5 && world.y <= 0) hero.className = 'ride' + lost;
+    const lost = (hero.classList.contains('lost') ? ' lost' : '')
+               + (world.carry ? ' carry' : '') + (world.safeT > 0 ? ' safe' : '');
+    if (world.rideT > .5 && world.y <= 0)
+        hero.className = 'ride' + (world.move ? ' ' + world.move : '') + lost;
     else if (world.move) hero.className = world.move + lost;
     else if (world.slideT > .5) hero.className = 'slide' + lost;
     else hero.className = (world.y > 0 ? (world.vy > 0 ? 'jump' : 'fall') : 'run')
@@ -1151,10 +1250,15 @@ function frame(now) {
             t.dead = true; t.el.classList.add('pop');
             world.coins++; play('coin');
             award(CAPY_PTS);
+        } else if (t.kind === 'fudge') {
+            t.dead = true; t.el.remove();
+            world.carry = true;
+            play('ride');
+            award(FUDGE_PTS, true);
         } else if (t.kind === 'ride') {
             t.dead = true; t.el.remove();
             mount();
-        } else if (world.riding > 0) {
+        } else if (world.riding > 0 || world.safeT > 0) {
             // nothing stands in the way of a capybara at full tilt
             t.dead = true; t.el.classList.add('pop');
             play('smash');
@@ -1185,7 +1289,28 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 /* ---- starting, and stopping ---------------------------------------- */
+// Fudge is a soft toy and a spare life: the first hit lands on him
+function saved() {
+    world.carry = false;
+    world.safeT = SAFE_TIME;
+    play('save');
+    gain('Fudge!', true);
+    const r = hero.getBoundingClientRect();
+    const d = document.createElement('div');
+    d.id = 'fudge-fly';
+    d.innerHTML = `<svg width="46" height="50" viewBox="0 0 44 48">${FUDGE.slice(FUDGE.indexOf('>') + 1, FUDGE.indexOf('</svg>'))}</svg>`;
+    d.style.left = `${r.left + 30}px`;
+    d.style.top = `${r.top + 40}px`;
+    gameEl.appendChild(d);
+    d.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 },
+               { transform: 'translate(-190px,-70px) rotate(-260deg)', opacity: 0 }],
+              { duration: 900, easing: 'ease-out' });
+    setTimeout(() => d.remove(), 950);
+}
+
 function crash(kind) {
+    if (world.safeT > 0) return;
+    if (world.carry) return saved();
     world.running = false;
     play('hit');
     stopMusic();
@@ -1237,7 +1362,7 @@ function begin() {
         running: true, speed: SPEED_MIN, dist: 0, coins: 0,
         y: 0, vy: 0, jumps: 0, jumpAt: -9, held: 0, holding: false, sliding: false, slideT: 0,
     move: null, moveT: 0, riding: 0, rideT: 0, rideAt: RIDE_FIRST,
-    score: 0, mult: 1, multT: 0,
+    score: 0, mult: 1, multT: 0, carry: false, safeT: 0, fudgeAt: FUDGE_FIRST,
         spawnIn: 520, things: [], t: 0
     });
     hero.className = 'run';
