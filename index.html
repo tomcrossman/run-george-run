@@ -693,7 +693,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v46';
+const APP_VERSION = 'v47';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -1396,19 +1396,34 @@ let gx = null, gy = null, usingTouch = false;
 // takes him off the ground and never has to snap him back. It commits the instant
 // anything proves it was not a swipe: the finger lifting, the finger holding still,
 // a flick upward — or seventy milliseconds passing, if none of those happen first.
-const JUMP_WAIT = 70, MOVED = 6, STILL = 3;
-let pending = null, gmoved = false;
-function armJump() { pending = setTimeout(fireJump, JUMP_WAIT); }
+// A press becomes a jump on release, or once it has sat still for this long.
+// It never commits on a small first movement: the opening sample of a swipe is
+// often only a pixel or two, and treating that as "holding still" was enough to
+// send him up before the swipe had been read.
+const JUMP_WAIT = 55, MOVED = 4;
+let pending = null, gmoved = false, crept = false, waited = false;
+function armJump(ms) { pending = setTimeout(commit, ms); }
+function commit() {
+    pending = null;
+    if (gmoved) return;                    // it turned out to be a swipe
+    // a finger that has crept a pixel or two is on its way somewhere: give it one
+    // more window before calling it a hold, which is what a slow swipe looks like
+    if (crept && !waited) { waited = true; return armJump(45); }
+    jump();
+}
 function fireJump() { if (pending) { clearTimeout(pending); pending = null; jump(); } }
 function dropJump() { clearTimeout(pending); pending = null; }
 
-function gestureStart(x, y) { gx = x; gy = y; gmoved = false; armJump(); }
+function gestureStart(x, y) {
+    gx = x; gy = y; gmoved = crept = waited = false;
+    armJump(JUMP_WAIT);
+}
 function gestureMove(x, y) {
     if (gx === null) return;
     const dx = x - gx, dy = y - gy, far = Math.hypot(dx, dy);
-    if (far > MOVED) gmoved = true;
-    else if (far < STILL) fireJump();          // staying put: it is a hold, so go now
-    if (-dy > 26 && -dy > Math.abs(dx)) { fireJump(); gx = gy = null; }   // a flick up is a jump
+    if (far > 1) crept = true;
+    if (far > MOVED) { gmoved = true; dropJump(); }
+    if (-dy > 26 && -dy > Math.abs(dx)) { dropJump(); jump(); gx = gy = null; }   // a flick up is a jump
     else if (dy > 26 && dy > Math.abs(dx)) { dropJump(); slideOn(); gx = gy = null; }
     else if (Math.abs(dx) > 28 && Math.abs(dx) > dy) { dropJump(); perform(dx > 0 ? 'sing' : 'dance'); gx = gy = null; }
 }
