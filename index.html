@@ -193,6 +193,10 @@ body {
 }
 .plate .cap { display: block; font-family: var(--font); font-size: 8.5px; font-weight: 900;
               letter-spacing: .18em; opacity: .55; margin-bottom: -3px; }
+.plate.mid { font-size: 21px; opacity: .92; }
+/* while he is beating it, the record is his own score, and it says so */
+.plate.mid.beating { background: var(--gold); animation: beat .5s ease-in-out infinite alternate; }
+@keyframes beat { from { transform: scale(1); } to { transform: scale(1.06); } }
 #coins { color: #b5791a; }
 
 /* ============================================================
@@ -237,10 +241,12 @@ body {
     box-shadow: var(--pop); cursor: pointer;
 }
 .btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
-.tally { display: flex; justify-content: center; gap: 18px; margin: 10px 0 2px; }
-.tally div { font-family: var(--font-display); font-size: 34px; line-height: 1; }
-.tally span { display: block; font-family: var(--font); font-size: 9px; font-weight: 900;
-              letter-spacing: .16em; opacity: .55; }
+.tally { display: flex; justify-content: center; gap: 22px; margin: 12px 0 4px; }
+/* the number is a span too, so only the first one gets the small caption treatment */
+.tally div { font-family: var(--font-display); font-size: 40px; line-height: 1.05; }
+.tally span { display: block; }
+.tally span:first-child { font-family: var(--font); font-size: 11px; font-weight: 900;
+                          letter-spacing: .14em; opacity: .55; }
 .best { color: var(--gold); }
 #version { position: absolute; bottom: 8px; right: 10px; z-index: 8;
            font-size: 9px; font-weight: 800; letter-spacing: .1em; opacity: .35; }
@@ -324,6 +330,7 @@ body {
 
     <div id="hud">
         <div class="plate"><span class="cap">Metres</span><span id="dist">0</span></div>
+        <div class="plate mid" id="bestplate"><span class="cap">Best</span><span id="best-val">0</span></div>
         <div class="plate" id="coins"><span class="cap">Capybaras</span><span id="coin-count">0</span></div>
     </div>
 
@@ -357,7 +364,7 @@ body {
 </div>
 
 <script>
-const APP_VERSION = 'v6';
+const APP_VERSION = 'v7';
 document.getElementById('version').textContent = `Run George, Run ${APP_VERSION}`;
 
 /* ============================================================
@@ -467,16 +474,39 @@ function play(name) {
     try { SFX[name](audioNow()); } catch (e) { /* no audio here, never mind */ }
 }
 
-/* a short driving loop, scheduled a bar ahead like the Fingaz bed */
+/* a bright four-bar chase tune, scheduled a bar ahead like the Fingaz bed */
 const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
-const BASS = [40, 40, 45, 45, 43, 43, 38, 38];
-const LEAD = { 0: 64, 3: 67, 6: 71, 8: 72, 11: 69, 14: 67 };
+// D - A - Bm - G, one bar each, eight eighth-notes to the bar
+const CHORDS = [
+    { root: 50, notes: [50, 54, 57] },
+    { root: 45, notes: [45, 49, 52] },
+    { root: 47, notes: [47, 50, 54] },
+    { root: 43, notes: [43, 47, 50] },
+];
+const BASS_FIG = [0, 0, 12, 0, 7, 0, 12, 7];     // semitones off the root, across the bar
+const MELODY = [                                 // the hook, one slot per eighth
+    78, 0, 81, 0, 83, 81, 78, 0,
+    76, 0, 78, 0, 81, 0, 78, 76,
+    78, 0, 81, 83, 86, 0, 83, 0,
+    81, 0, 78, 0, 76, 74, 76, 0,
+];
 let musicTimer = null, step = 0, nextAt = 0;
-function musicStep(n, t) {
-    const bar = BASS[Math.floor(n / 2) % BASS.length];
-    if (n % 2 === 0) mTone(t, NOTE(bar), .18, 'triangle', .3, 420);
-    if (n % 4 === 0) kick(t);
-    if (LEAD[n % 16] !== undefined) mTone(t, NOTE(LEAD[n % 16] + 12), .16, 'square', .055, 2600);
+function musicStep(n, t, d) {
+    const bar = CHORDS[(n >> 3) % 4], beat = n % 8;
+    // kick on one and three, with a lift into every other bar
+    if (beat === 0 || beat === 4 || (beat === 7 && (n >> 3) % 2 === 1)) kick(t);
+    if (beat === 2 || beat === 6) snare(t);
+    tick(t, beat % 2 ? .085 : .05);
+    // once he is really moving, the hats double up and the tune changes gear
+    if (world.speed > 560) tick(t + d / 2, .05);
+    mTone(t, NOTE(bar.root + BASS_FIG[beat] - 12), .16, 'triangle', .3, 460);
+    // an off-beat chord stab: the bit that makes it bounce
+    if (beat % 2 === 1)
+        bar.notes.forEach(m => mTone(t, NOTE(m + 12), .1, 'square', .034, 2200));
+    if (MELODY[n]) {
+        mTone(t, NOTE(MELODY[n]), .17, 'square', .05, 3000);
+        mTone(t, NOTE(MELODY[n]), .17, 'triangle', .035, 3000);
+    }
 }
 function mTone(t, freq, dur, type, vol, cut) {
     const o = audioCtx.createOscillator(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
@@ -491,13 +521,26 @@ function mTone(t, freq, dur, type, vol, cut) {
 function kick(t) {
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.type = 'sine';
-    o.frequency.setValueAtTime(140, t);
-    o.frequency.exponentialRampToValueAtTime(46, t + .1);
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(48, t + .09);
     g.gain.setValueAtTime(.45, t);
-    g.gain.exponentialRampToValueAtTime(.0001, t + .16);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .15);
     o.connect(g); g.connect(musicGain);
-    o.start(t); o.stop(t + .18);
+    o.start(t); o.stop(t + .17);
 }
+function noiseHit(t, { hp, dur, vol }) {
+    const n = audioCtx.createBufferSource(), f = audioCtx.createBiquadFilter(), g = audioCtx.createGain();
+    n.buffer = noiseBuf; n.loop = true;
+    f.type = 'highpass'; f.frequency.value = hp;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    n.connect(f); f.connect(g); g.connect(musicGain);
+    n.start(t); n.stop(t + dur + .02);
+}
+const snare = (t) => { noiseHit(t, { hp: 1500, dur: .13, vol: .2 });
+                       mTone(t, 190, .07, 'triangle', .12, 900); };
+const tick = (t, vol) => noiseHit(t, { hp: 7200, dur: .04, vol });
+
 function startMusic() {
     if (!soundOn || musicTimer) return;
     audioNow();
@@ -506,11 +549,11 @@ function startMusic() {
     musicTimer = setInterval(() => {
         if (!audioCtx) return;
         // the bed speeds up with the run, so the pace is audible
-        const dur = 60 / (132 + (world.speed - SPEED_MIN) * .08) / 4;
+        const d = 60 / (150 + (world.speed - SPEED_MIN) * .09) / 2;
         while (nextAt < audioCtx.currentTime + .2) {
-            musicStep(step, nextAt);
-            nextAt += dur * 2;
-            step = (step + 1) % 16;
+            musicStep(step, nextAt, d);
+            nextAt += d;
+            step = (step + 1) % MELODY.length;
         }
     }, 40);
 }
@@ -753,7 +796,10 @@ function frame(now) {
         world.spawnIn = room + Math.random() * room * .7;
     }
 
-    document.getElementById('dist').textContent = Math.floor(world.dist);
+    const m = Math.floor(world.dist);
+    document.getElementById('dist').textContent = m;
+    document.getElementById('best-val').textContent = Math.max(best, m);
+    document.getElementById('bestplate').classList.toggle('beating', m > best && best > 0);
     document.getElementById('speedlines').style.opacity = world.speed > 560 ? .5 : 0;
 }
 requestAnimationFrame(frame);
@@ -796,6 +842,8 @@ function crash(kind) {
     document.getElementById('over-dist').textContent = score;
     document.getElementById('over-coins').textContent = world.coins;
     document.getElementById('over-best').textContent = best;
+    document.getElementById('best-val').textContent = best;
+    document.getElementById('bestplate').classList.remove('beating');
     setTimeout(() => { document.getElementById('over-card').hidden = false; }, 700);
 }
 
@@ -812,6 +860,8 @@ function begin() {
     hero.classList.remove('hurt', 'lost');
     hero.style.transform = 'translateY(0)';
     document.getElementById('dist').textContent = '0';
+    document.getElementById('best-val').textContent = best;
+    document.getElementById('bestplate').classList.remove('beating');
     document.getElementById('coin-count').textContent = '0';
     startMusic();
 }
